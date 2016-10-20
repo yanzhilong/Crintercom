@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">CrIntercom</string>
+
+
+    <string name="login_hint_account">请输入帐号</string>
+    <string name="login_hint_password">请输入密码</string>
+
+    <string name="login_exception">无效输入</string>
+    <string name="logining">登录中\u2026</string>
+    <string name="login_failed">帐号或密码错误</string>
+    <string name="kickout_content">你的帐号被%1$s踢出下线，请确定帐号信息安全</string>
+    <string name="title_activity_test_main">TestMain</string>
+</resources>
