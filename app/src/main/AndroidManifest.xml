@@ -110,10 +110,7 @@
             android:name="com.netease.cosine.target.receiver"
             android:value="com.netease.nimlib.service.NimReceiver" />
         //**************************************************************************************
-        <activity
-            android:name=".MainActivity">
-
-        </activity>
+        <activity android:name=".MainActivity"></activity>
         <activity
             android:name=".TestMainActivity"
             android:label="超超测试">
@@ -125,8 +122,8 @@
         </activity>
         <activity
             android:name=".WelcomeActivity"
-            android:label="超超Demo"
             android:hardwareAccelerated="true"
+            android:label="超超Demo"
             android:theme="@style/WelcomeEntranceActionBarTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -135,6 +132,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".login.LoginActivity" />
+        <activity android:name=".avchat.activity.AVChatActivity"></activity>
     </application>
 
 </manifest>
