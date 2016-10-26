@@ -5,13 +5,10 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- 语音通话 -->
-    <include
-        android:id="@+id/avchat_audio_layout"
-        layout="@layout/avchat_audio_layout"
+    <FrameLayout
+        android:id="@+id/framelayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone" />
+        android:layout_height="match_parent">
 
-
+    </FrameLayout>
 </FrameLayout>

@@ -55,7 +55,6 @@ public class AVChatUI implements AVChatUIListener{
         configFromPreference(PreferenceManager.getDefaultSharedPreferences(context));
         updateAVChatOptionalConfig();
 
-        avChatAudio = new AVChatAudio(root.findViewById(R.id.avchat_audio_layout), this, this);
     }
 
 
