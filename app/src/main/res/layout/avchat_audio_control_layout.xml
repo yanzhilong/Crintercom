@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:paddingLeft="15dp"
+    android:paddingRight="15dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:gravity="center_vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:descendantFocusability="beforeDescendants"
+            android:clickable="true"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+
+            <ToggleButton
+                android:id="@+id/muteTb"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:textOff="麦克风关"
+                android:textOn="麦克风开"/>
+
+            <ToggleButton
+                android:id="@+id/speakerTb"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:textOff="扬声器关"
+                android:textOn="扬声器开"/>
+
+            <ToggleButton
+                android:id="@+id/recordTb"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:textOff="录制关闭"
+                android:textOn="录制开启"/>
+
+        </LinearLayout>
+
+        <!--<RelativeLayout
+            android:layout_marginLeft="5dp"
+            android:descendantFocusability="beforeDescendants"
+            android:id="@+id/avchat_audio_speaker"
+            android:clickable="true"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content">
+
+
+            <Button
+                android:clickable="false"
+                android:drawablePadding="8dp"
+                android:layout_centerInParent="true"
+                android:background="@color/transparent"
+                android:gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="扬声器"
+                android:textSize="17sp"
+                />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_marginLeft="5dp"
+            android:descendantFocusability="beforeDescendants"
+            android:id="@+id/avchat_audio_record"
+            android:clickable="true"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content">
+
+
+            <Button
+                android:clickable="false"
+                android:drawablePadding="8dp"
+                android:layout_centerInParent="true"
+                android:background="@color/transparent"
+                android:gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="录制"
+                android:textSize="17sp"
+                />
+
+        </RelativeLayout>-->
+
+    </LinearLayout>
+
+    <LinearLayout
+
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+
+        <Button
+            android:id="@+id/avchat_audio_hangup"
+            android:gravity="center"
+            android:layout_width="0dp"
+            android:layout_weight="1.0"
+            android:layout_height="wrap_content"
+            android:text="@string/avchat_hangup"
+            android:textSize="17sp"
+            android:visibility="visible"
+            />
+
+
+    </LinearLayout>
+
+</LinearLayout>

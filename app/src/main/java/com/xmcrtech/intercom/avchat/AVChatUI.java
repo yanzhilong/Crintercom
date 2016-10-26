@@ -1,4 +1,4 @@
-package com.xmcrtech.intercom.avchat.activity;
+package com.xmcrtech.intercom.avchat;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -6,27 +6,41 @@ import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
+import com.netease.nimlib.sdk.avchat.AVChatCallback;
+import com.netease.nimlib.sdk.avchat.AVChatManager;
 import com.netease.nimlib.sdk.avchat.constant.AVChatAudioEffectMode;
 import com.netease.nimlib.sdk.avchat.constant.AVChatType;
 import com.netease.nimlib.sdk.avchat.model.AVChatData;
 import com.netease.nimlib.sdk.avchat.model.AVChatOptionalConfig;
 import com.netease.nimlib.sdk.avchat.model.AVChatParameters;
 import com.xmcrtech.intercom.R;
-import com.xmcrtech.intercom.avchat.AVChatSoundPlayer;
+import com.xmcrtech.intercom.avchat.activity.AVChatExitCode;
+import com.xmcrtech.intercom.avchat.constant.CallStateEnum;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 音视频管理器, 音视频相关功能管理
  * Created by yanzl on 16-10-24.
  */
-public class AVChatUI {
+public class AVChatUI implements AVChatUIListener{
 
     private static final String TAG = AVChatUI.class.getSimpleName();
     private Context context;
     private AVChatData avChatData;
     private final AVChatListener aVChatListener;
 
+    private long timeBase = 0;
+    private AVChatAudio avChatAudio;
+
+    private CallStateEnum callingState = CallStateEnum.INVALID;
+
     private String receiveraccount; // 呼出接收方的账号
+    public AtomicBoolean isCallEstablish = new AtomicBoolean(false);//用于判断是否有建立连接
+    // state
+    public boolean canSwitchCamera = false;//用于是否能切换摄像头
 
     private AVChatOptionalConfig avChatOptionalConfig;//音视频通话配置
 
@@ -40,6 +54,8 @@ public class AVChatUI {
         this.avChatOptionalConfig = new AVChatOptionalConfig();
         configFromPreference(PreferenceManager.getDefaultSharedPreferences(context));
         updateAVChatOptionalConfig();
+
+        avChatAudio = new AVChatAudio(root.findViewById(R.id.avchat_audio_layout), this, this);
     }
 
 
@@ -178,6 +194,117 @@ public class AVChatUI {
     }
 
 
+    /**
+     * 接听来电
+     */
+    private void receiveInComingCall() {
+        //接听，告知服务器，以便通知其他端
+
+        if (callingState == CallStateEnum.INCOMING_AUDIO_CALLING) {
+            onCallStateChange(CallStateEnum.AUDIO_CONNECTING);
+        } else {
+            onCallStateChange(CallStateEnum.VIDEO_CONNECTING);
+        }
+
+        AVChatManager.getInstance().accept(avChatOptionalConfig, new AVChatCallback<Void>() {
+            @Override
+            public void onSuccess(Void v) {
+                Log.d(TAG,"接听来电成功");
+
+                isCallEstablish.set(true);
+                canSwitchCamera = true;
+            }
+
+            @Override
+            public void onFailed(int code) {
+                if (code == -1) {
+                    Toast.makeText(context, "本地音视频启动失败", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(context, "建立连接失败", Toast.LENGTH_SHORT).show();
+                }
+                Log.d(TAG,"接听音頻电话失败");
+                closeSessions(AVChatExitCode.CANCEL);
+            }
+
+            @Override
+            public void onException(Throwable exception) {
+                Log.d(TAG,"接听音頻电话异常:" + exception);
+            }
+        });
+
+        AVChatSoundPlayer.instance(context).stop();
+    }
+
+
+    @Override
+    public void onHangUp() {
+        Log.d(TAG,"挂断或取消");
+    }
+
+    @Override
+    public void onRefuse() {
+        Log.d(TAG,"拒绝操作");
+    }
+
+    @Override
+    public void onReceive() {
+        Log.d(TAG,"接受开启视频或接听电话");
+        //判断当前状态
+        switch (callingState) {
+            case INCOMING_AUDIO_CALLING://音频通话呼入
+                receiveInComingCall();
+                onCallStateChange(CallStateEnum.AUDIO_CONNECTING);
+                break;
+            case AUDIO_CONNECTING: // 连接中，继续点击开启 无反应
+                break;
+            case INCOMING_VIDEO_CALLING://视频通话呼入
+                receiveInComingCall();
+                onCallStateChange(CallStateEnum.VIDEO_CONNECTING);
+                break;
+            case VIDEO_CONNECTING: // 连接中，继续点击开启 无反应
+                break;
+            case INCOMING_AUDIO_TO_VIDEO://音频通话切换到视频通话状态(接受)
+                //receiveAudioToVideo();
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public void toggleMute() {
+        Log.d(TAG,"静音");
+    }
+
+    @Override
+    public void toggleSpeaker() {
+        Log.d(TAG,"扩音");
+    }
+
+    @Override
+    public void toggleRecord() {
+        Log.d(TAG,"录制");
+    }
+
+    @Override
+    public void videoSwitchAudio() {
+        Log.d(TAG,"切换到音頻");
+    }
+
+    @Override
+    public void audioSwitchVideo() {
+        Log.d(TAG,"切换到视频");
+    }
+
+    @Override
+    public void switchCamera() {
+        Log.d(TAG,"切换摄像头");
+    }
+
+    @Override
+    public void closeCamera() {
+        Log.d(TAG,"关闭摄像头");
+    }
+
 
     //用于回調Activity，用于着装通话界面
     public interface AVChatListener {
@@ -207,6 +334,25 @@ public class AVChatUI {
 
 
     /**
+     * 状态改变
+     *
+     * @param stateEnum
+     */
+    public void onCallStateChange(CallStateEnum stateEnum) {
+        callingState = stateEnum;
+        //avChatSurface.onCallStateChange(stateEnum);
+        avChatAudio.onCallStateChange(stateEnum);
+        //avChatVideo.onCallStateChange(stateEnum);
+    }
+
+    //获取拔入方或拔出对方的账号
+    public String getAccount() {
+        if (receiveraccount != null)
+            return receiveraccount;
+        return null;
+    }
+
+    /**
      * 有来电进来的时候调用这个
      */
     public void inComingCalling(AVChatData avChatData) {
@@ -216,9 +362,17 @@ public class AVChatUI {
         AVChatSoundPlayer.instance(context).play(AVChatSoundPlayer.RingerTypeEnum.RING);
 
         if (avChatData.getChatType() == AVChatType.AUDIO) {
-            //onCallStateChange(CallStateEnum.INCOMING_AUDIO_CALLING);
+            onCallStateChange(CallStateEnum.INCOMING_AUDIO_CALLING);
         } else {
-            //onCallStateChange(CallStateEnum.INCOMING_VIDEO_CALLING);
+            onCallStateChange(CallStateEnum.INCOMING_VIDEO_CALLING);
         }
+    }
+
+    public long getTimeBase() {
+        return timeBase;
+    }
+
+    public void setTimeBase(long timeBase) {
+        this.timeBase = timeBase;
     }
 }

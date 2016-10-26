@@ -3,6 +3,7 @@ package com.xmcrtech.intercom.avchat.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,6 +26,8 @@ import com.netease.nimlib.sdk.avchat.model.AVChatOnlineAckEvent;
 import com.netease.nimlib.sdk.avchat.model.AVChatVideoFrame;
 import com.xmcrtech.intercom.R;
 import com.xmcrtech.intercom.avchat.AVChatSoundPlayer;
+import com.xmcrtech.intercom.avchat.AVChatUI;
+import com.xmcrtech.intercom.avchat.constant.CallStateEnum;
 
 /**
  * 呼入和呼出的界面
@@ -366,6 +369,15 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
         @Override
         public void onCallEstablished() {
             Log.d(TAG,state == AVChatType.AUDIO.getValue() ? "音频" : "视频" + "通话已经接通");
+            if (avChatUI.getTimeBase() == 0)
+                avChatUI.setTimeBase(SystemClock.elapsedRealtime());
+
+            if (state == AVChatType.AUDIO.getValue()) {
+                avChatUI.onCallStateChange(CallStateEnum.AUDIO);
+            } else {
+                /*avChatUI.initLocalSurfaceView();
+                avChatUI.onCallStateChange(CallStateEnum.VIDEO);*/
+            }
             isCallEstablished = true;
         }
 
