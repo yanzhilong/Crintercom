@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- 音频切换到视频 -->
+
+        <Button
+            android:id="@+id/switch_video"
+            android:clickable="false"
+            android:background="@color/transparent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawablePadding="5dip"
+            android:shadowColor="#353738"
+            android:shadowDy="-1"
+            android:shadowRadius="1"
+            android:text="@string/avchat_switch_to_video"
+            android:textSize="13sp"
+            android:visibility="visible" />
+
+    <!-- 通话时间显示 -->
+    <Chronometer
+        android:id="@+id/avchat_audio_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="15dp"
+        android:shadowColor="#fbfbf9"
+        android:shadowDy="1"
+        android:shadowRadius="1"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:visibility="gone" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="音频通话中" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:descendantFocusability="beforeDescendants"
+            android:orientation="horizontal">
+
+
+            <ToggleButton
+                android:id="@+id/muteTb"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textOff="麦克风关"
+                android:textOn="麦克风开" />
+
+            <ToggleButton
+                android:id="@+id/speakerTb"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textOff="扬声器关"
+                android:textOn="扬声器开" />
+
+            <ToggleButton
+                android:id="@+id/recordTb"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textOff="录制关闭"
+                android:textOn="录制开启" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+    <Button
+        android:id="@+id/audio_hangup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/avchat_hangup"
+        android:textSize="17sp"
+        android:visibility="visible" />
+
+
+</LinearLayout>

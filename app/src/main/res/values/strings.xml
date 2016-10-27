@@ -27,6 +27,13 @@
     <string name="avchat_network_grade_2">网络一般：</string>
     <string name="avchat_network_grade_3">网络较差：</string>
 
+    <string name="avchat_net_error_then_quit">网络异常，通话结束</string>
+    <string name="avchat_call_finish">通话结束</string>
+    <string name="avchat_peer_busy">对方正在通话中，请稍后再拨。</string>
+    <string name="avchat_peer_protocol_low_version">对方版本过低，请提示对方升级</string>
+    <string name="avchat_local_protocol_low_version">版本过低，请升级后使用</string>
+    <string name="avchat_invalid_channel_id">对方已挂断</string>
+    <string name="avchat_local_call_busy">本地通话中，无法使用掌上门铃进行通话。</string>
 
     <string name="nrtc_setting_vie_crop_key">nrtc_setting_vie_crop_key</string>
     <string name="nrtc_setting_vie_rotation_key">nrtc_setting_vie_rotation_key</string>

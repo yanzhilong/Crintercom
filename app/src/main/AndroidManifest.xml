@@ -132,7 +132,11 @@
             </intent-filter>
         </activity>
         <activity android:name=".login.LoginActivity" />
-        <activity android:name=".avchat.activity.AVChatActivity"></activity>
+        <activity
+            android:name=".avchat.activity.AVChatActivity"
+            android:screenOrientation="portrait">
+
+        </activity>
     </application>
 
 </manifest>

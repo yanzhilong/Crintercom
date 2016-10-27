@@ -1,5 +1,7 @@
 package com.xmcrtech.intercom.avchat.activity;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -20,6 +22,7 @@ import com.netease.nimlib.sdk.avchat.model.AVChatOptionalConfig;
 import com.netease.nimlib.sdk.avchat.model.AVChatParameters;
 import com.xmcrtech.intercom.R;
 import com.xmcrtech.intercom.avchat.AVChatSoundPlayer;
+import com.xmcrtech.intercom.avchat.constant.CallStateEnum;
 
 /**
  * 有电话呼入的时的界面
@@ -38,11 +41,22 @@ public class IncomingFragment extends Fragment implements View.OnClickListener {
 
     private String account = "";
     private boolean isVideo = false;
+    private CallStateEnum callingState = CallStateEnum.INVALID;
+
+    private AVChatActivity avchatActivity;
 
     public static IncomingFragment newInstance() {
         return new IncomingFragment();
     }
 
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if(context instanceof Activity){
+            avchatActivity = (AVChatActivity) context;
+        }
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -51,6 +65,7 @@ public class IncomingFragment extends Fragment implements View.OnClickListener {
         if (bundle != null) {
             account = bundle.getString(ACCOUNT);
             isVideo = bundle.getBoolean(ISVIDEO);
+            callingState = isVideo ? CallStateEnum.INCOMING_VIDEO_CALLING : CallStateEnum.INCOMING_AUDIO_CALLING;
         }
         this.avChatOptionalConfig = new AVChatOptionalConfig();
         updateAVChatOptionalConfig();
@@ -223,40 +238,96 @@ public class IncomingFragment extends Fragment implements View.OnClickListener {
         super.onPause();
     }
 
+    //语音接听
+    private void onAudioReceive(){
+        AVChatManager.getInstance().accept(avChatOptionalConfig, new AVChatCallback<Void>() {
+            @Override
+            public void onSuccess(Void v) {
+                Log.d(TAG, "接听来电成功");
+            }
+
+            @Override
+            public void onFailed(int code) {
+                if (code == -1) {
+                    Toast.makeText(getContext(), "本地音视频启动失败", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "建立连接失败", Toast.LENGTH_SHORT).show();
+                }
+                Log.d(TAG, "接听音頻电话失败");
+                if(avchatActivity != null){
+                    avchatActivity.closeSessions(AVChatExitCode.CANCEL);
+                }
+            }
+
+            @Override
+            public void onException(Throwable exception) {
+                Log.d(TAG, "接听音頻电话异常:" + exception);
+            }
+        });
+    }
+
+    //视频接听
+    private void onVideoReceive(){
+        onAudioReceive();
+    }
+
+    /**
+     * 拒绝来电
+     */
+    private void rejectInComingCall() {
+        /**
+         * 接收方拒绝通话
+         * AVChatCallback 回调函数
+         */
+        AVChatManager.getInstance().hangUp(new AVChatCallback<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+            }
+
+            @Override
+            public void onFailed(int code) {
+                Log.d(TAG, "reject sucess->" + code);
+            }
+
+            @Override
+            public void onException(Throwable exception) {
+                Log.d(TAG, "reject sucess");
+            }
+        });
+        if(avchatActivity != null){
+            avchatActivity.closeSessions(AVChatExitCode.REJECT);
+        }
+        //closeSessions(AVChatExitCode.REJECT);
+        AVChatSoundPlayer.instance(getContext()).stop();
+    }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.refuse://拒绝
-
+                rejectInComingCall();
                 break;
             case R.id.receive://接听
-                AVChatManager.getInstance().accept(avChatOptionalConfig, new AVChatCallback<Void>() {
-                    @Override
-                    public void onSuccess(Void v) {
-                        Log.d(TAG, "接听来电成功");
-                    }
-
-                    @Override
-                    public void onFailed(int code) {
-                        if (code == -1) {
-                            Toast.makeText(getContext(), "本地音视频启动失败", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(getContext(), "建立连接失败", Toast.LENGTH_SHORT).show();
-                        }
-                        Log.d(TAG, "接听音頻电话失败");
-                    }
-
-                    @Override
-                    public void onException(Throwable exception) {
-                        Log.d(TAG, "接听音頻电话异常:" + exception);
-                    }
-                });
-
+                switch (callingState){
+                    case INCOMING_AUDIO_CALLING:
+                        onAudioReceive();
+                        callingState = CallStateEnum.AUDIO_CONNECTING;
+                        break;
+                    case INCOMING_VIDEO_CALLING:
+                        onVideoReceive();
+                        callingState = CallStateEnum.VIDEO_CONNECTING;
+                        break;
+                }
+                onConnecting();//连接中
                 AVChatSoundPlayer.instance(getContext()).stop();
                 break;
             default:
                 break;
         }
+    }
+
+    //连接中ui
+    private void onConnecting() {
+        request.setText("连接中");
     }
 }

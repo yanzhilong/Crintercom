@@ -48,7 +48,9 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
     private boolean isCallEstablished = false; // 电话是否接通
     private String receiveraccount; // 呼出接收方的账号
 
-    IncomingFragment incomingFragment = IncomingFragment.newInstance();
+    private IncomingFragment incomingFragment = IncomingFragment.newInstance();
+    private IncallAudioFragment incallAudioFragment = IncallAudioFragment.newInstance();
+    private IncallVideoFragment incallVideoFragment = IncallVideoFragment.newInstance();
     private Fragment currentFragment;
 
     @Override
@@ -88,7 +90,8 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
         if (fragment != currentFragment) {
             if (!fragment.isAdded()) {
                 getSupportFragmentManager().beginTransaction().hide(currentFragment)
-                        .add(R.id.framelayout, fragment).commit();
+                .add(R.id.framelayout, fragment,"audio")
+                .commit();
             } else {
                 getSupportFragmentManager().beginTransaction().hide(currentFragment)
                         .show(fragment).commit();
@@ -146,7 +149,7 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
         incomingFragment.setArguments(bundle);
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.framelayout, incomingFragment).commit();
-
+        currentFragment = incomingFragment;
     }
 
     /**
@@ -169,6 +172,7 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
         @Override
         public void onEvent(Integer integer) {
 
+            closeSessions(AVChatExitCode.PEER_BUSY);
             AVChatSoundPlayer.instance(AVChatActivity.this).stop();
             Log.d(TAG,"本地自动挂断");
         }
@@ -180,14 +184,17 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
         public void onEvent(AVChatTimeOutEvent event) {
             if (event == AVChatTimeOutEvent.NET_BROKEN_TIMEOUT) {
                 //网絡错误
+                closeSessions(AVChatExitCode.NET_ERROR);
                 Log.d(TAG,"在呼叫过程中网絡出錯");
             } else {
                 Log.d(TAG,"对方未接听或自己未接听");
+                closeSessions(AVChatExitCode.PEER_NO_RESPONSE);
             }
 
             // 来电超时，自己未接听
             if (event == AVChatTimeOutEvent.INCOMING_TIMEOUT) {
                 Log.d(TAG,"呼入的时候自己未接听，显示在通知栏");
+                closeSessions(AVChatExitCode.PEER_NO_RESPONSE);
             }
 
             AVChatSoundPlayer.instance(AVChatActivity.this).stop();
@@ -219,6 +226,7 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
                 if (client != null) {
                     String option = ackInfo.getEvent() == AVChatEventType.CALLEE_ONLINE_CLIENT_ACK_AGREE ? "接听！" : "拒绝！";
                     Toast.makeText(AVChatActivity.this, "通话已在" + client + "端被" + option, Toast.LENGTH_SHORT).show();
+                    closeSessions(-1);
                 }
             }
         }
@@ -231,6 +239,11 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
         @Override
         public void onEvent(AVChatCommonEvent avChatHangUpInfo) {
 
+            if(isCallEstablished){
+                closeSessions(AVChatExitCode.HANGUP);
+            }else{
+                closeSessions(AVChatExitCode.PEER_NO_RESPONSE);
+            }
             AVChatSoundPlayer.instance(AVChatActivity.this).stop();
             Log.d(TAG,isCallEstablished ? "对话中" : "呼入中" + "对方挂断了");
 
@@ -290,20 +303,21 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
             if (ackInfo.getEvent() == AVChatEventType.CALLEE_ACK_BUSY) {
 
                 AVChatSoundPlayer.instance(AVChatActivity.this).play(AVChatSoundPlayer.RingerTypeEnum.PEER_BUSY);
+                closeSessions(AVChatExitCode.PEER_BUSY);
                 //对方线路忙
                 Log.d(TAG,"对方线路忙");
             } else if (ackInfo.getEvent() == AVChatEventType.CALLEE_ACK_REJECT) {
-
+                closeSessions(AVChatExitCode.REJECT);
                 Log.d(TAG,"对方线拒绝接听");
 
             } else if (ackInfo.getEvent() == AVChatEventType.CALLEE_ACK_AGREE) {
                 if (ackInfo.isDeviceReady()) {
 
                     Log.d(TAG,"对方同意接听");
-
                 } else {
                     // 设备初始化失败
                     Toast.makeText(AVChatActivity.this, R.string.avchat_device_no_ready, Toast.LENGTH_SHORT).show();
+                    closeSessions(AVChatExitCode.OPEN_DEVICE_ERROR);
                 }
             }
         }
@@ -346,12 +360,16 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
             if (code == 200) {
                 Log.d(TAG, "连接服务器成功");
             } else if (code == 101) { // 连接超时
+                closeSessions(AVChatExitCode.PEER_NO_RESPONSE);
                 Log.d(TAG, "连接服务器超时");
             } else if (code == 401) { // 验证失败
+                closeSessions(AVChatExitCode.CONFIG_ERROR);
                 Log.d(TAG, "验证失败");
             } else if (code == 417) { // 无效的channelId
+                closeSessions(AVChatExitCode.INVALIDE_CHANNELID);
                 Log.d(TAG, "无效的channelId");
             } else { // 连接服务器错误，直接退出
+                closeSessions(AVChatExitCode.CONFIG_ERROR);
                 Log.d(TAG, "连接服务器错误");
             }
 
@@ -390,6 +408,12 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
         @Override
         public void onCallEstablished() {
             Log.d(TAG,state == AVChatType.AUDIO.getValue() ? "音频" : "视频" + "通话已经接通");
+            //切换到相应界面
+            if (state == AVChatType.AUDIO.getValue()) {
+                switchFragment(incallAudioFragment);
+            } else {
+                switchFragment(incallVideoFragment);
+            }
             isCallEstablished = true;
         }
 
@@ -422,5 +446,53 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
     @Override
     public void uiExit() {
         finish();
+    }
+
+    /**
+     * 着装会話
+     */
+    public void closeSessions(int exitCode){
+        showQuitToast(exitCode);
+        finish();
+    }
+
+    /**
+     * 给出结束的提醒
+     *
+     * @param code
+     */
+    public void showQuitToast(int code) {
+        switch (code) {
+            case AVChatExitCode.NET_CHANGE: // 网络切换
+            case AVChatExitCode.NET_ERROR: // 网络异常
+            case AVChatExitCode.CONFIG_ERROR: // 服务器返回数据错误
+                Toast.makeText(this, R.string.avchat_net_error_then_quit, Toast.LENGTH_SHORT).show();
+                break;
+            case AVChatExitCode.PEER_HANGUP:
+            case AVChatExitCode.HANGUP:
+                Toast.makeText(this, R.string.avchat_call_finish, Toast.LENGTH_SHORT).show();
+                break;
+            case AVChatExitCode.PEER_BUSY:
+                Toast.makeText(this, R.string.avchat_peer_busy, Toast.LENGTH_SHORT).show();
+                break;
+            case AVChatExitCode.PROTOCOL_INCOMPATIBLE_PEER_LOWER:
+                Toast.makeText(this, R.string.avchat_peer_protocol_low_version, Toast.LENGTH_SHORT).show();
+                break;
+            case AVChatExitCode.PROTOCOL_INCOMPATIBLE_SELF_LOWER:
+                Toast.makeText(this, R.string.avchat_local_protocol_low_version, Toast.LENGTH_SHORT).show();
+                break;
+            case AVChatExitCode.INVALIDE_CHANNELID:
+                Toast.makeText(this, R.string.avchat_invalid_channel_id, Toast.LENGTH_SHORT).show();
+                break;
+            case AVChatExitCode.LOCAL_CALL_BUSY:
+                Toast.makeText(this, R.string.avchat_local_call_busy, Toast.LENGTH_SHORT).show();
+                break;
+            case AVChatExitCode.PEER_NO_RESPONSE:
+                //来电未接看是否显示通知
+
+                break;
+            default:
+                break;
+        }
     }
 }
