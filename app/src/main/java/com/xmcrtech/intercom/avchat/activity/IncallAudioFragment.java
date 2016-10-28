@@ -18,10 +18,13 @@ import com.netease.nimlib.sdk.avchat.AVChatCallback;
 import com.netease.nimlib.sdk.avchat.AVChatManager;
 import com.xmcrtech.intercom.R;
 import com.xmcrtech.intercom.avchat.AVChatSoundPlayer;
+import com.xmcrtech.intercom.avchat.AVChatListener;
 
 public class IncallAudioFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
     public static final String ACCOUNT = "account";
+    public static final String AVCHATLISTENER = "avchatlistener";
+    public static final String VIDEOTOAUDIO = "videotoaudio";//从视频切换过来的，需要检测原来的配置
     private static final String TAG = IncallAudioFragment.class.getSimpleName();
 
     public static IncallAudioFragment newInstance() {
@@ -31,6 +34,7 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
     private AVChatActivity avchatActivity;
 
     private String account = "";
+    private boolean videotoaudio = false;
 
     private View switchVideo;//切换到视频
     private Chronometer time; //通话时间
@@ -38,6 +42,12 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
     private ToggleButton speakerTb;
     private ToggleButton recordTb;
     private View hangup;
+
+    private AVChatListener avChatUIListener;
+
+    public void setAvChatUIListener(AVChatListener avChatUIListener) {
+        this.avChatUIListener = avChatUIListener;
+    }
 
     @Override
     public void onAttach(Context context) {
@@ -53,6 +63,8 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
         Bundle bundle = getArguments();
         if (bundle != null) {
             account = bundle.getString(ACCOUNT);
+            videotoaudio = bundle.getBoolean(VIDEOTOAUDIO);
+            avChatUIListener = (AVChatListener) bundle.getSerializable(AVCHATLISTENER);
         }
     }
 
@@ -87,9 +99,25 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
         return root;
     }
 
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        Log.d(TAG,"音视頻切换了");
+        if(!hidden){
+            Log.d(TAG,"fragment is show");
+            muteTb.setChecked(AVChatManager.getInstance().isLocalAudioMuted());
+            speakerTb.setChecked(AVChatManager.getInstance().speakerEnabled());
+        }
+    }
+
     @Override
     public void onResume() {
         super.onResume();
+        if(videotoaudio){
+            muteTb.setChecked(AVChatManager.getInstance().isLocalAudioMuted());
+            speakerTb.setChecked(AVChatManager.getInstance().speakerEnabled());
+        }
     }
 
     @Override
@@ -140,11 +168,11 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
         switch (compoundButton.getId()) {
             case R.id.muteTb:
                 if (b) {
-                    // 打开音频
-                    AVChatManager.getInstance().muteLocalAudio(false);
-                } else {
                     // 关闭音频
                     AVChatManager.getInstance().muteLocalAudio(true);
+                } else {
+                    // 打开音频
+                    AVChatManager.getInstance().muteLocalAudio(false);
                 }
                 break;
             case R.id.speakerTb:

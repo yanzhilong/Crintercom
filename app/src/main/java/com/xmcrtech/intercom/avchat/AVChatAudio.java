@@ -44,13 +44,13 @@ public class AVChatAudio implements CompoundButton.OnCheckedChangeListener, View
     private TextView refuseTV;
     private TextView receiveTV;
 
-    private AVChatUIListener listener;//当前状态监听
+    private AVChatListener listener;//当前状态监听
     private AVChatUI manager;//音视頻管理类，用于获取时间及相差参数
 
     // state
     private boolean init = false;//用于判断是否初始化索
 
-    public AVChatAudio(View root, AVChatUIListener listener, AVChatUI manager) {
+    public AVChatAudio(View root, AVChatListener listener, AVChatUI manager) {
         this.rootView = root;
         this.listener = listener;
         this.manager = manager;

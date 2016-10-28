@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 音视频管理器, 音视频相关功能管理
  * Created by yanzl on 16-10-24.
  */
-public class AVChatUI implements AVChatUIListener{
+public class AVChatUI implements AVChatListener {
 
     private static final String TAG = AVChatUI.class.getSimpleName();
     private Context context;

@@ -16,22 +16,31 @@ import android.widget.ToggleButton;
 
 import com.netease.nimlib.sdk.avchat.AVChatCallback;
 import com.netease.nimlib.sdk.avchat.AVChatManager;
+import com.netease.nimlib.sdk.avchat.AVChatStateObserver;
+import com.netease.nimlib.sdk.avchat.model.AVChatAudioFrame;
+import com.netease.nimlib.sdk.avchat.model.AVChatVideoFrame;
+import com.xmcrtech.intercom.Constant;
 import com.xmcrtech.intercom.R;
+import com.xmcrtech.intercom.avchat.AVChatListener;
 import com.xmcrtech.intercom.avchat.AVChatSoundPlayer;
 
 
 public class IncallVideoFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
     public static final String ACCOUNT = "account";
+    public static final String AVCHATLISTENER = "avchatlistener";
+    public static final String AUDIOTOVIDEO = "audiotovideo";//从视频切换过来的，需要检测原来的配置
     private static final String TAG = IncallVideoFragment.class.getSimpleName();
     private Object object;
 
     private boolean isClosedCamera = false;//标记当前摄像头的开关
+    private View root;
 
     public static IncallVideoFragment newInstance() {
         return new IncallVideoFragment();
     }
     private String account = "";
+    private boolean audiotovideo = false;
 
     private View switchAudio;//切换到视频
     private View switch_camera;//切换前置摄像头和后置摄像头
@@ -41,7 +50,17 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
     private ToggleButton recordTb;
     private View hangup;
 
+    private AVChatSurface avChatSurface;
+
     private AVChatActivity avchatActivity;
+
+    private AVChatListener avChatUIListener;
+
+    private boolean isInit = false;
+
+    public void setAvChatUIListener(AVChatListener avChatUIListener) {
+        this.avChatUIListener = avChatUIListener;
+    }
 
     @Override
     public void onAttach(Context context) {
@@ -55,8 +74,11 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle bundle = getArguments();
+
         if (bundle != null) {
             account = bundle.getString(ACCOUNT);
+            audiotovideo = bundle.getBoolean(AUDIOTOVIDEO);
+            avChatUIListener = (AVChatListener) bundle.getSerializable(AVCHATLISTENER);
         }
     }
 
@@ -64,8 +86,15 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        View root = inflater.inflate(R.layout.incallvideo_frag, container, false);
+        root = inflater.inflate(R.layout.incallvideo_frag, container, false);
 
+        avChatSurface = new AVChatSurface(this.getContext(), root);
+
+        isInit = true;
+        Log.d(TAG,"onCreateView" + account);
+        if(account != null){
+            avChatSurface.initLargeSurfaceView(account);
+        }
         switchAudio = root.findViewById(R.id.switch_audio);
         switchAudio.setOnClickListener(this);
 
@@ -77,7 +106,7 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
         muteTb = (ToggleButton) root.findViewById(R.id.muteTb);
         speakerTb = (ToggleButton) root.findViewById(R.id.speakerTb);
         recordTb = (ToggleButton) root.findViewById(R.id.recordTb);
-        muteTb.setChecked(true);
+        muteTb.setChecked(false);
         speakerTb.setChecked(false);
         recordTb.setChecked(false);
 
@@ -87,15 +116,133 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
         recordTb.setOnCheckedChangeListener(this);
         hangup.setOnClickListener(this);
 
+        //初始化本地图像
+        avChatSurface.initSmallSurfaceView(Constant.getAccount());
+
         //如果有设置菜单，需要加这个
         setHasOptionsMenu(true);
 
         return root;
     }
 
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        Log.d(TAG,"音视頻切换了");
+        if(!hidden){
+            Log.d(TAG,"fragment is show");
+            muteTb.setChecked(AVChatManager.getInstance().isLocalAudioMuted());
+            speakerTb.setChecked(AVChatManager.getInstance().speakerEnabled());
+        }
+    }
+
+    /**
+     * 监听通话发起后的状态
+     */
+    public AVChatStateObserver mAVChatStateObserver = new AVChatStateObserver() {
+        @Override
+        public void onTakeSnapshotResult(String s, boolean b, String s1) {
+
+        }
+
+        @Override
+        public void onConnectionTypeChanged(int i) {
+
+        }
+
+        @Override
+        public void onLocalRecordEnd(String[] strings, int i) {
+
+        }
+
+        @Override
+        public void onFirstVideoFrameAvailable(String s) {
+
+        }
+
+        @Override
+        public void onVideoFpsReported(String s, int i) {
+
+        }
+
+        @Override
+        public void onJoinedChannel(int code, String audioFile, String videoFile) {
+
+        }
+
+        @Override
+        public void onLeaveChannel() {
+
+        }
+
+        @Override
+        public void onUserJoined(String s) {
+            Log.d(TAG, "onUserJoin -> " + s + isInit);
+            account = s;
+            if(isInit){
+                avChatSurface.initLargeSurfaceView(account);
+            }
+        }
+
+        @Override
+        public void onUserLeave(String s, int i) {
+
+        }
+
+        @Override
+        public void onProtocolIncompatible(int i) {
+
+        }
+
+        @Override
+        public void onDisconnectServer() {
+
+        }
+
+        @Override
+        public void onNetworkQuality(String s, int i) {
+
+        }
+
+        @Override
+        public void onCallEstablished() {
+        }
+
+        @Override
+        public void onDeviceEvent(int i, String s) {
+
+        }
+
+        @Override
+        public void onFirstVideoFrameRendered(String s) {
+
+        }
+
+        @Override
+        public void onVideoFrameResolutionChanged(String s, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public int onVideoFrameFilter(AVChatVideoFrame avChatVideoFrame) {
+            return 0;
+        }
+
+        @Override
+        public int onAudioFrameFilter(AVChatAudioFrame avChatAudioFrame) {
+            return 0;
+        }
+    };
+
+
     @Override
     public void onResume() {
         super.onResume();
+        if(audiotovideo){
+            muteTb.setChecked(AVChatManager.getInstance().isLocalAudioMuted());
+            speakerTb.setChecked(AVChatManager.getInstance().speakerEnabled());
+        }
     }
 
     @Override
@@ -128,6 +275,7 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
         AVChatSoundPlayer.instance(getContext()).stop();
     }
 
+
     //关闭摄像头
     public void switchCamera(boolean open) {
 
@@ -149,10 +297,12 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.audio_hangup:
+            case R.id.video_hangup://挂断
                 hangUp();
                 break;
-
+            case R.id.switch_audio:
+                avChatUIListener.videoSwitchAudio();
+            break;
             default:
                 break;
         }
@@ -169,11 +319,11 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
                 }
             case R.id.muteTb:
                 if (b) {
-                    // 打开音频
-                    AVChatManager.getInstance().muteLocalAudio(false);
-                } else {
                     // 关闭音频
                     AVChatManager.getInstance().muteLocalAudio(true);
+                } else {
+                    // 打开音频
+                    AVChatManager.getInstance().muteLocalAudio(false);
                 }
                 break;
             case R.id.speakerTb:
@@ -194,4 +344,5 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
                 break;
         }
     }
+
 }

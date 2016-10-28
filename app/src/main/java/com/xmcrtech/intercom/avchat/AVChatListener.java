@@ -1,9 +1,11 @@
 package com.xmcrtech.intercom.avchat;
 
+import java.io.Serializable;
+
 /**
  * 音视频界面操作
  */
-public interface AVChatUIListener {
+public interface AVChatListener extends Serializable{
     void onHangUp();//挂断或取消
     void onRefuse();//拒绝操作，根据当前状态来选择合适的操作
     void onReceive();//接受 开启操作，根据当前状态来选择合适的操作

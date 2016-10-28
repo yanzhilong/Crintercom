@@ -19,6 +19,7 @@ import com.netease.nimlib.sdk.RequestCallback;
 import com.netease.nimlib.sdk.auth.AuthService;
 import com.netease.nimlib.sdk.auth.ClientType;
 import com.netease.nimlib.sdk.auth.LoginInfo;
+import com.xmcrtech.intercom.Constant;
 import com.xmcrtech.intercom.MainActivity;
 import com.xmcrtech.intercom.R;
 import com.xmcrtech.intercom.config.Preferences;
@@ -149,6 +150,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private void saveLoginInfo(String account, String token) {
         Preferences.saveUserAccount(account);
         Preferences.saveUserToken(token);
+        Constant.setAccount(account.toLowerCase());
     }
 
 

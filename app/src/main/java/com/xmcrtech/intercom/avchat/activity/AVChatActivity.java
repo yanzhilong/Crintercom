@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.netease.nimlib.sdk.Observer;
 import com.netease.nimlib.sdk.auth.ClientType;
+import com.netease.nimlib.sdk.avchat.AVChatCallback;
 import com.netease.nimlib.sdk.avchat.AVChatManager;
 import com.netease.nimlib.sdk.avchat.AVChatStateObserver;
 import com.netease.nimlib.sdk.avchat.constant.AVChatEventType;
@@ -27,6 +28,7 @@ import com.netease.nimlib.sdk.avchat.model.AVChatVideoFrame;
 import com.xmcrtech.intercom.R;
 import com.xmcrtech.intercom.avchat.AVChatSoundPlayer;
 import com.xmcrtech.intercom.avchat.AVChatUI;
+import com.xmcrtech.intercom.avchat.AVChatListener;
 
 /**
  * 呼入和呼出的界面
@@ -60,6 +62,17 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
         View root = LayoutInflater.from(this).inflate(R.layout.avchat_act, null);
         setContentView(root);
         mIsInComingCall = getIntent().getBooleanExtra(KEY_IN_CALLING, false);
+       /* Bundle bundle = new Bundle();
+        bundle.putString(IncallAudioFragment.ACCOUNT,receiveraccount);
+        bundle.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
+        incallAudioFragment.setArguments(bundle);
+
+        Bundle bundle１ = new Bundle();
+        bundle１.putString(IncallAudioFragment.ACCOUNT,receiveraccount);
+        bundle１.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
+        incallVideoFragment.setArguments(bundle１);*/
+
+
         //判断来电还是去电
         if (mIsInComingCall) {
             avChatData = (AVChatData) getIntent().getSerializableExtra(KEY_CALL_CONFIG);
@@ -77,6 +90,89 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
         //注册监听
         registerNetCallObserver(true);
     }
+
+    /**
+     * 音视频切换回調
+     */
+    private AVChatListener avChatListener = new AVChatListener() {
+        @Override
+        public void onHangUp() {
+
+        }
+
+        @Override
+        public void onRefuse() {
+
+        }
+
+        @Override
+        public void onReceive() {
+
+        }
+
+        @Override
+        public void toggleMute() {
+
+        }
+
+        @Override
+        public void toggleSpeaker() {
+
+        }
+
+        @Override
+        public void toggleRecord() {
+
+        }
+
+        @Override
+        public void videoSwitchAudio() {
+            AVChatManager.getInstance().requestSwitchToAudio(new AVChatCallback<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    // 界面布局切换。
+               /* onCallStateChange(CallStateEnum.AUDIO);
+                onVideoToAudio();*/
+                    if(!incallAudioFragment.isAdded()){
+
+                        Bundle bundle = new Bundle();
+                        bundle.putString(IncallAudioFragment.ACCOUNT,receiveraccount);
+                        bundle.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
+                        bundle.putBoolean(IncallAudioFragment.VIDEOTOAUDIO,true);
+                        incallAudioFragment.setArguments(bundle);
+
+                    }
+                    switchFragment(incallAudioFragment);
+                }
+
+                @Override
+                public void onFailed(int code) {
+
+                }
+
+                @Override
+                public void onException(Throwable exception) {
+
+                }
+            });
+        }
+
+        @Override
+        public void audioSwitchVideo() {
+
+        }
+
+        @Override
+        public void switchCamera() {
+
+        }
+
+        @Override
+        public void closeCamera() {
+
+        }
+    };
+
 
     @Override
     protected void onResume() {
@@ -149,7 +245,7 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
         incomingFragment.setArguments(bundle);
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.framelayout, incomingFragment).commit();
-        currentFragment = incomingFragment;
+        //currentFragment = incomingFragment;
     }
 
     /**
@@ -382,7 +478,8 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
 
         @Override
         public void onUserJoined(String s) {
-
+            Log.d(TAG, "onUserJoin -> " + s);
+            incallVideoFragment.mAVChatStateObserver.onUserJoined(s);
         }
 
         @Override
@@ -410,9 +507,21 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
             Log.d(TAG,state == AVChatType.AUDIO.getValue() ? "音频" : "视频" + "通话已经接通");
             //切换到相应界面
             if (state == AVChatType.AUDIO.getValue()) {
-                switchFragment(incallAudioFragment);
+                Bundle bundle = new Bundle();
+                bundle.putString(IncallAudioFragment.ACCOUNT,receiveraccount);
+                bundle.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
+                incallAudioFragment.setArguments(bundle);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.framelayout, incallAudioFragment).commit();
+                currentFragment = incallAudioFragment;
             } else {
-                switchFragment(incallVideoFragment);
+                Bundle bundle１ = new Bundle();
+                bundle１.putString(IncallAudioFragment.ACCOUNT,receiveraccount);
+                bundle１.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
+                incallVideoFragment.setArguments(bundle１);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.framelayout, incallVideoFragment).commit();
+                currentFragment = incallVideoFragment;
             }
             isCallEstablished = true;
         }
