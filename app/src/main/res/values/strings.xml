@@ -7,6 +7,7 @@
 
     <string name="login_exception">无效输入</string>
     <string name="logining">登录中\u2026</string>
+    <string name="connectioning">连接中\u2026</string>
     <string name="login_failed">帐号或密码错误</string>
     <string name="kickout_content">你的帐号被%1$s踢出下线，请确定帐号信息安全</string>
     <string name="avchat_device_no_ready">音视频设备未准备好</string>
@@ -34,6 +35,9 @@
     <string name="avchat_local_protocol_low_version">版本过低，请升级后使用</string>
     <string name="avchat_invalid_channel_id">对方已挂断</string>
     <string name="avchat_local_call_busy">本地通话中，无法使用掌上门铃进行通话。</string>
+    <string name="network_is_not_available">网络连接失败，请检查你的网络设置</string>
+    <string name="avchat_no_permission">暂无权限，请开通音视频服务</string>
+    <string name="avchat_call_failed">发起通话失败</string>
 
     <string name="nrtc_setting_vie_crop_key">nrtc_setting_vie_crop_key</string>
     <string name="nrtc_setting_vie_rotation_key">nrtc_setting_vie_rotation_key</string>
@@ -51,5 +55,7 @@
     <string name="nrtc_setting_vie_max_bitrate_key">nrtc_setting_vie_max_bitrate_key</string>
     <string name="nrtc_setting_other_device_default_rotation_key">nrtc_setting_other_device_default_rotation_key</string>
     <string name="nrtc_setting_other_device_rotation_fixed_offset_key">nrtc_setting_other_device_rotation_fixed_offset_key</string>
+
+    <string name="title_dial">Dial</string>
 
 </resources>

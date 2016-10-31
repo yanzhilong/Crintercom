@@ -26,9 +26,10 @@ import com.netease.nimlib.sdk.avchat.model.AVChatData;
 import com.netease.nimlib.sdk.avchat.model.AVChatOnlineAckEvent;
 import com.netease.nimlib.sdk.avchat.model.AVChatVideoFrame;
 import com.xmcrtech.intercom.R;
+import com.xmcrtech.intercom.avchat.AVChatListener;
 import com.xmcrtech.intercom.avchat.AVChatSoundPlayer;
 import com.xmcrtech.intercom.avchat.AVChatUI;
-import com.xmcrtech.intercom.avchat.AVChatListener;
+import com.xmcrtech.intercom.util.NetworkUtil;
 
 /**
  * 呼入和呼出的界面
@@ -53,6 +54,7 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
     private IncomingFragment incomingFragment = IncomingFragment.newInstance();
     private IncallAudioFragment incallAudioFragment = IncallAudioFragment.newInstance();
     private IncallVideoFragment incallVideoFragment = IncallVideoFragment.newInstance();
+    private OutGoingFragment outGoingFragment = OutGoingFragment.newInstance();
     private Fragment currentFragment;
 
     @Override
@@ -84,7 +86,7 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
             receiveraccount = getIntent().getStringExtra(KEY_ACCOUNT);
             state = getIntent().getIntExtra(KEY_CALL_TYPE, -1);
             Log.d(TAG,"正在"+ (state == AVChatType.AUDIO.getValue() ? "音频" : "视频")+"呼叫"+receiveraccount);
-
+            outgoingCalling();
         }
         isCallEstablished = false;//初始未接通
         //注册监听
@@ -98,6 +100,23 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
         @Override
         public void onHangUp() {
 
+            AVChatManager.getInstance().hangUp(new AVChatCallback<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                }
+
+                @Override
+                public void onFailed(int code) {
+                    Log.d(TAG, "hangup onFailed->" + code);
+                }
+
+                @Override
+                public void onException(Throwable exception) {
+                    Log.d(TAG, "hangup onException->" + exception);
+                }
+            });
+            closeSessions(AVChatExitCode.HANGUP);
+            AVChatSoundPlayer.instance(AVChatActivity.this).stop();
         }
 
         @Override
@@ -138,7 +157,6 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
                         Bundle bundle = new Bundle();
                         bundle.putString(IncallAudioFragment.ACCOUNT,receiveraccount);
                         bundle.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
-                        bundle.putBoolean(IncallAudioFragment.VIDEOTOAUDIO,true);
                         incallAudioFragment.setArguments(bundle);
 
                     }
@@ -160,6 +178,25 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
         @Override
         public void audioSwitchVideo() {
 
+            /**
+             * 请求音频切换到视频
+             */
+            AVChatManager.getInstance().requestSwitchToVideo(new AVChatCallback<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Log.d(TAG, "requestSwitchToVideo onSuccess");
+                }
+
+                @Override
+                public void onFailed(int code) {
+                    Log.d(TAG, "requestSwitchToVideo onFailed" + code);
+                }
+
+                @Override
+                public void onException(Throwable exception) {
+                    Log.d(TAG, "requestSwitchToVideo onException" + exception);
+                }
+            });
         }
 
         @Override
@@ -247,6 +284,27 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
                 .add(R.id.framelayout, incomingFragment).commit();
         //currentFragment = incomingFragment;
     }
+
+
+    /**
+     * 拨打
+     */
+    private void outgoingCalling() {
+        if (!NetworkUtil.isNetAvailable(AVChatActivity.this)) { // 网络不可用
+            Toast.makeText(this, R.string.network_is_not_available, Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        Bundle bundle = new Bundle();
+        bundle.putString(OutGoingFragment.ACCOUNT,receiveraccount);
+        bundle.putSerializable(OutGoingFragment.AVCHATTYPE,AVChatType.typeOfValue(state));
+        bundle.putSerializable(OutGoingFragment.AVCHATLISTENER,avChatListener);
+        outGoingFragment.setArguments(bundle);
+        getSupportFragmentManager().beginTransaction()
+                .add(R.id.framelayout, outGoingFragment).commit();
+
+    }
+
 
     /**
      * 注册监听
@@ -356,13 +414,20 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
             switch (netCallControlNotification.getControlCommand()) {
                 case SWITCH_AUDIO_TO_VIDEO:
                     Log.d(TAG,"对方请求切换到视频通话");
+
                     break;
                 case SWITCH_AUDIO_TO_VIDEO_AGREE:
                     Log.d(TAG,"对方同意切换到视频通话");
+                    if(!incallVideoFragment.isAdded()){
+                        Bundle bundle１ = new Bundle();
+                        bundle１.putString(IncallAudioFragment.ACCOUNT,receiveraccount);
+                        bundle１.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
+                        incallVideoFragment.setArguments(bundle１);
+                    }
+                    switchFragment(incallVideoFragment);
                     break;
                 case SWITCH_AUDIO_TO_VIDEO_REJECT:
                     Log.d(TAG,"请求切换到视频被拒绝");
-                    Toast.makeText(AVChatActivity.this, R.string.avchat_switch_video_reject, Toast.LENGTH_SHORT).show();
                     break;
                 case SWITCH_VIDEO_TO_AUDIO:
                     Log.d(TAG,"对方请求切换到音频通话");

@@ -96,6 +96,7 @@ public class AVChatAudio implements CompoundButton.OnCheckedChangeListener, View
         init = true;
     }
 
+
     /**
      * 显示或隐藏音视频切换
      * @param visible

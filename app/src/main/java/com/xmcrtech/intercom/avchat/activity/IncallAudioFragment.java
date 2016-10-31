@@ -11,20 +11,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Chronometer;
 import android.widget.CompoundButton;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import com.netease.nimlib.sdk.avchat.AVChatCallback;
+import com.netease.nimlib.sdk.Observer;
 import com.netease.nimlib.sdk.avchat.AVChatManager;
+import com.netease.nimlib.sdk.avchat.model.AVChatControlEvent;
 import com.xmcrtech.intercom.R;
-import com.xmcrtech.intercom.avchat.AVChatSoundPlayer;
 import com.xmcrtech.intercom.avchat.AVChatListener;
 
-public class IncallAudioFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
+public class IncallAudioFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener, AVChatListener{
 
     public static final String ACCOUNT = "account";
     public static final String AVCHATLISTENER = "avchatlistener";
-    public static final String VIDEOTOAUDIO = "videotoaudio";//从视频切换过来的，需要检测原来的配置
     private static final String TAG = IncallAudioFragment.class.getSimpleName();
 
     public static IncallAudioFragment newInstance() {
@@ -34,7 +34,6 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
     private AVChatActivity avchatActivity;
 
     private String account = "";
-    private boolean videotoaudio = false;
 
     private View switchVideo;//切换到视频
     private Chronometer time; //通话时间
@@ -42,12 +41,9 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
     private ToggleButton speakerTb;
     private ToggleButton recordTb;
     private View hangup;
+    private TextView status;//当前状态，正在通话中，正在等待对方同意
 
     private AVChatListener avChatUIListener;
-
-    public void setAvChatUIListener(AVChatListener avChatUIListener) {
-        this.avChatUIListener = avChatUIListener;
-    }
 
     @Override
     public void onAttach(Context context) {
@@ -63,9 +59,10 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
         Bundle bundle = getArguments();
         if (bundle != null) {
             account = bundle.getString(ACCOUNT);
-            videotoaudio = bundle.getBoolean(VIDEOTOAUDIO);
             avChatUIListener = (AVChatListener) bundle.getSerializable(AVCHATLISTENER);
         }
+        //注册监听
+        registerNetCallObserver(true);
     }
 
     @Nullable
@@ -83,11 +80,11 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
         muteTb = (ToggleButton) root.findViewById(R.id.muteTb);
         speakerTb = (ToggleButton) root.findViewById(R.id.speakerTb);
         recordTb = (ToggleButton) root.findViewById(R.id.recordTb);
-        muteTb.setChecked(true);
         speakerTb.setChecked(false);
         recordTb.setChecked(false);
 
         hangup = root.findViewById(R.id.audio_hangup);
+        status = (TextView) root.findViewById(R.id.status);
         muteTb.setOnCheckedChangeListener(this);
         speakerTb.setOnCheckedChangeListener(this);
         recordTb.setOnCheckedChangeListener(this);
@@ -99,6 +96,15 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
         return root;
     }
 
+    /**
+     * 注册监听
+     *
+     * @param register
+     */
+    private void registerNetCallObserver(boolean register) {
+        AVChatManager.getInstance().observeControlNotification(callControlObserver, register);//音视頻切换通知
+    }
+
 
     @Override
     public void onHiddenChanged(boolean hidden) {
@@ -106,6 +112,7 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
         Log.d(TAG,"音视頻切换了");
         if(!hidden){
             Log.d(TAG,"fragment is show");
+            status.setText("正在通话中");
             muteTb.setChecked(AVChatManager.getInstance().isLocalAudioMuted());
             speakerTb.setChecked(AVChatManager.getInstance().speakerEnabled());
         }
@@ -114,10 +121,8 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
     @Override
     public void onResume() {
         super.onResume();
-        if(videotoaudio){
-            muteTb.setChecked(AVChatManager.getInstance().isLocalAudioMuted());
-            speakerTb.setChecked(AVChatManager.getInstance().speakerEnabled());
-        }
+        muteTb.setChecked(AVChatManager.getInstance().isLocalAudioMuted());
+        speakerTb.setChecked(AVChatManager.getInstance().speakerEnabled());
     }
 
     @Override
@@ -125,39 +130,43 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
         super.onPause();
     }
 
-    /**
-     * 挂断
-     */
-    private void hangUp() {
-        AVChatManager.getInstance().hangUp(new AVChatCallback<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-            }
-
-            @Override
-            public void onFailed(int code) {
-                Log.d(TAG, "hangup onFailed->" + code);
-            }
-
-            @Override
-            public void onException(Throwable exception) {
-                Log.d(TAG, "hangup onException->" + exception);
-            }
-        });
-        if(avchatActivity != null){
-            avchatActivity.closeSessions(AVChatExitCode.HANGUP);
-        }
-        AVChatSoundPlayer.instance(getContext()).stop();
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        registerNetCallObserver(false);
     }
 
+    /**
+     * 注册/注销网络通话控制消息（音视频模式切换通知）
+     */
+    Observer<AVChatControlEvent> callControlObserver = new Observer<AVChatControlEvent>() {
+        @Override
+        public void onEvent(AVChatControlEvent netCallControlNotification) {
+
+            switch (netCallControlNotification.getControlCommand()) {
+                case SWITCH_AUDIO_TO_VIDEO:
+                    Log.d(TAG,"对方请求切换到视频通话");
+
+                    break;
+                case SWITCH_AUDIO_TO_VIDEO_REJECT:
+                    Log.d(TAG,"请求切换到视频被拒绝");
+                    status.setText("正在通话中");
+                    Toast.makeText(IncallAudioFragment.this.getContext(), R.string.avchat_switch_video_reject, Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+    };
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.audio_hangup:
-                hangUp();
+                onHangUp();
                 break;
 
+            case R.id.switch_video:
+                audioSwitchVideo();
+                break;
             default:
                 break;
         }
@@ -192,5 +201,56 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
                 }
                 break;
         }
+    }
+
+    @Override
+    public void onHangUp() {
+        avChatUIListener.onHangUp();
+    }
+
+    @Override
+    public void onRefuse() {
+
+    }
+
+    @Override
+    public void onReceive() {
+
+    }
+
+    @Override
+    public void toggleMute() {
+
+    }
+
+    @Override
+    public void toggleSpeaker() {
+
+    }
+
+    @Override
+    public void toggleRecord() {
+
+    }
+
+    @Override
+    public void videoSwitchAudio() {
+
+    }
+
+    @Override
+    public void audioSwitchVideo() {
+        status.setText("正在等待对方同意");
+        avChatUIListener.audioSwitchVideo();
+    }
+
+    @Override
+    public void switchCamera() {
+
+    }
+
+    @Override
+    public void closeCamera() {
+
     }
 }

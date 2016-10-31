@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import com.xmcrtech.intercom.dial.DialActivity;
 import com.xmcrtech.intercom.login.LoginActivity;
 
 public class TestMainActivity extends AppCompatActivity implements View.OnClickListener{
@@ -39,7 +40,7 @@ public class TestMainActivity extends AppCompatActivity implements View.OnClickL
                 break;
             case R.id.dialing:
                 //拔号
-
+                startActivity(new Intent(this,DialActivity.class));
                 break;
             case R.id.avchat:
                 //通话相关
