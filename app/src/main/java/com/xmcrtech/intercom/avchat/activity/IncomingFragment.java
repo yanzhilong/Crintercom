@@ -5,19 +5,15 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.netease.nimlib.sdk.avchat.AVChatCallback;
-import com.netease.nimlib.sdk.avchat.AVChatManager;
+import com.netease.nimlib.sdk.avchat.constant.AVChatType;
 import com.xmcrtech.intercom.R;
-import com.xmcrtech.intercom.avchat.AVChatSoundPlayer;
+import com.xmcrtech.intercom.avchat.AVChatListener;
 import com.xmcrtech.intercom.avchat.constant.CallStateEnum;
-import com.xmcrtech.intercom.config.SessionConfig;
 
 /**
  * 有电话呼入的时的界面
@@ -26,28 +22,48 @@ public class IncomingFragment extends Fragment implements View.OnClickListener {
 
     private static final String TAG = IncomingFragment.class.getSimpleName();
 
+    public static final String AVCHATLISTENER = "avchatlistener";
     public static final String ACCOUNT = "account";
-    public static final String ISVIDEO = "isvideo";
+    public static final String AVCHATTYPE = "AvchatType";//当前通话类型
+
+    //当前通话类型
+    AVChatType avChatType;
 
     private TextView nickname;//备注名称
     private TextView request;//请求类型
 
     private String account = "";
-    private boolean isVideo = false;
-    private CallStateEnum callingState = CallStateEnum.INVALID;
-
-    private AVChatActivity avchatActivity;
 
     public static IncomingFragment newInstance() {
         return new IncomingFragment();
     }
 
+    private AVChatListener avChatUIListener;
+    private AVChatActivity avchatActivity;
+
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if(context instanceof Activity){
+        if (context instanceof Activity) {
+
             avchatActivity = (AVChatActivity) context;
+            avchatActivity.addCallStateChangeListener(new AVChatActivity.CallStateChangeListener() {
+                @Override
+                public void onCallStateChange(CallStateEnum callStateEnum) {
+                    switch (callStateEnum){
+                        case ANSWERCONNECTING:
+                            request.setText("连接中....");
+                            break;
+                        case AUDIO:
+                        case VIDEO:
+                            if(!avchatActivity.isFinishing()){
+                                avchatActivity.removeCallStateChangeListener(this);
+                            }
+                            break;
+                    }
+                }
+            });
         }
     }
 
@@ -57,10 +73,9 @@ public class IncomingFragment extends Fragment implements View.OnClickListener {
         Bundle bundle = getArguments();
         if (bundle != null) {
             account = bundle.getString(ACCOUNT);
-            isVideo = bundle.getBoolean(ISVIDEO);
-            callingState = isVideo ? CallStateEnum.INCOMING_VIDEO_CALLING : CallStateEnum.INCOMING_AUDIO_CALLING;
+            avChatType = (AVChatType) bundle.getSerializable(AVCHATTYPE);
+            avChatUIListener = (AVChatListener) bundle.getSerializable(AVCHATLISTENER);
         }
-
     }
 
 
@@ -75,10 +90,13 @@ public class IncomingFragment extends Fragment implements View.OnClickListener {
         root.findViewById(R.id.refuse).setOnClickListener(this);
         root.findViewById(R.id.receive).setOnClickListener(this);
 
-        if (isVideo) {
-            request.setText("请求视频聊天");
-        } else {
-            request.setText("请求通话");
+        switch (avChatType){
+            case VIDEO:
+                request.setText("请求视频聊天");
+                break;
+            case AUDIO:
+                request.setText("请求通话");
+                break;
         }
 
         nickname.setText(account);
@@ -98,97 +116,18 @@ public class IncomingFragment extends Fragment implements View.OnClickListener {
         super.onPause();
     }
 
-    //语音接听
-    private void onAudioReceive(){
-
-        AVChatManager.getInstance().accept(SessionConfig.newInstance(getContext()).getAvChatOptionalConfig(), new AVChatCallback<Void>() {
-            @Override
-            public void onSuccess(Void v) {
-                Log.d(TAG, "接听来电成功");
-            }
-
-            @Override
-            public void onFailed(int code) {
-                if (code == -1) {
-                    Toast.makeText(getContext(), "本地音视频启动失败", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getContext(), "建立连接失败", Toast.LENGTH_SHORT).show();
-                }
-                Log.d(TAG, "接听音頻电话失败");
-                if(avchatActivity != null){
-                    avchatActivity.closeSessions(AVChatExitCode.CANCEL);
-                }
-            }
-
-            @Override
-            public void onException(Throwable exception) {
-                Log.d(TAG, "接听音頻电话异常:" + exception);
-            }
-        });
-    }
-
-    //视频接听
-    private void onVideoReceive(){
-        onAudioReceive();
-    }
-
-    /**
-     * 拒绝来电
-     */
-    private void rejectInComingCall() {
-        /**
-         * 接收方拒绝通话
-         * AVChatCallback 回调函数
-         */
-        AVChatManager.getInstance().hangUp(new AVChatCallback<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-            }
-
-            @Override
-            public void onFailed(int code) {
-                Log.d(TAG, "reject sucess->" + code);
-            }
-
-            @Override
-            public void onException(Throwable exception) {
-                Log.d(TAG, "reject sucess");
-            }
-        });
-        if(avchatActivity != null){
-            avchatActivity.closeSessions(AVChatExitCode.REJECT);
-        }
-        //closeSessions(AVChatExitCode.REJECT);
-        AVChatSoundPlayer.instance(getContext()).stop();
-    }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.refuse://拒绝
-                rejectInComingCall();
+                avChatUIListener.refuse();
                 break;
             case R.id.receive://接听
-                switch (callingState){
-                    case INCOMING_AUDIO_CALLING:
-                        onAudioReceive();
-                        callingState = CallStateEnum.AUDIO_CONNECTING;
-                        break;
-                    case INCOMING_VIDEO_CALLING:
-                        onVideoReceive();
-                        callingState = CallStateEnum.VIDEO_CONNECTING;
-                        break;
-                }
-                onConnecting();//连接中
-                AVChatSoundPlayer.instance(getContext()).stop();
+                avChatUIListener.answer();
                 break;
             default:
                 break;
         }
-    }
-
-    //连接中ui
-    private void onConnecting() {
-        request.setText("连接中");
     }
 }

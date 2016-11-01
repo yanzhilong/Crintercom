@@ -94,14 +94,6 @@
                 android:textOff="扬声器"
                 android:textOn="扬声器" />
 
-            <ToggleButton
-                android:id="@+id/recordTb"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textOff="录制关闭"
-                android:textOn="录制开启" />
-
         </LinearLayout>
 
     </LinearLayout>

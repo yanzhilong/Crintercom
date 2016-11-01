@@ -60,11 +60,11 @@ public class DialActivity extends AppCompatActivity implements View.OnClickListe
         switch (view.getId()){
             case R.id.audiocall:
                 peeraccount = account.getText().toString().trim();
-                AVChatActivity.outgoing(this,peeraccount, AVChatType.AUDIO.getValue());
+                AVChatActivity.outgoing(this,peeraccount,AVChatType.AUDIO);
                 break;
             case R.id.videocall:
                 peeraccount = account.getText().toString().trim();
-                AVChatActivity.outgoing(this,peeraccount, AVChatType.VIDEO.getValue());
+                AVChatActivity.outgoing(this,peeraccount,AVChatType.VIDEO);
                 break;
         }
     }

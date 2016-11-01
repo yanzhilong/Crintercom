@@ -23,9 +23,10 @@ import com.netease.nimlib.sdk.avchat.model.AVChatVideoFrame;
 import com.xmcrtech.intercom.Constant;
 import com.xmcrtech.intercom.R;
 import com.xmcrtech.intercom.avchat.AVChatListener;
+import com.xmcrtech.intercom.avchat.constant.CallStateEnum;
 
 
-public class IncallVideoFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener, AVChatListener {
+public class IncallVideoFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
     public static final String ACCOUNT = "account";
     public static final String AVCHATLISTENER = "avchatlistener";
@@ -45,7 +46,6 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
     private View switch_camera;//切换前置摄像头和后置摄像头
     private Chronometer time; //通话时间
     private ToggleButton muteTb;
-    private ToggleButton recordTb;
     private ToggleButton close_camera;
     private View hangup;
 
@@ -58,15 +58,25 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
 
     private boolean isInit = false;
 
-    public void setAvChatUIListener(AVChatListener avChatUIListener) {
-        this.avChatUIListener = avChatUIListener;
-    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof Activity) {
             avchatActivity = (AVChatActivity) context;
+            avchatActivity.addCallStateChangeListener(new AVChatActivity.CallStateChangeListener() {
+                @Override
+                public void onCallStateChange(CallStateEnum callStateEnum) {
+                    switch (callStateEnum){
+
+                        case VIDEO:
+
+                            break;
+                        case OUTGOING_VIDEO_TO_AUDIO_FAIL://请求切换为音频
+                            Toast.makeText(IncallVideoFragment.this.getContext(), "连接服务器失败", Toast.LENGTH_SHORT).show();
+                            break;
+                    }
+                }
+            });
         }
     }
 
@@ -92,8 +102,6 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
 
         avChatSurface = new AVChatSurface(this.getContext(), root);
 
-
-
         isInit = true;
         Log.d(TAG, "onCreateView" + account);
         if (account != null) {
@@ -110,13 +118,10 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
         switch_camera.setOnClickListener(this);
         //通话控制布局
         muteTb = (ToggleButton) root.findViewById(R.id.muteTb);
-        recordTb = (ToggleButton) root.findViewById(R.id.recordTb);
         muteTb.setChecked(false);
-        recordTb.setChecked(false);
 
         hangup = root.findViewById(R.id.video_hangup);
         muteTb.setOnCheckedChangeListener(this);
-        recordTb.setOnCheckedChangeListener(this);
         close_camera.setOnCheckedChangeListener(this);
         hangup.setOnClickListener(this);
 
@@ -274,13 +279,13 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.video_hangup://挂断
-                onHangUp();
+                avChatUIListener.onHangUp();
                 break;
             case R.id.switch_audio:
-                videoSwitchAudio();
+                avChatUIListener.videoSwitchAudio();
                 break;
             case R.id.switch_camera:
-                switchCamera();
+                AVChatManager.getInstance().switchCamera(); // 切换摄像头（主要用于前置和后置摄像头切换）
                 break;
             default:
                 break;
@@ -299,11 +304,10 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
                 closeCamera();
             case R.id.muteTb:
                 if (b) {
-                    // 关闭音频
-                    AVChatManager.getInstance().muteLocalAudio(true);
+                    avChatUIListener.micMute();
                 } else {
                     // 打开音频
-                    AVChatManager.getInstance().muteLocalAudio(false);
+                    avChatUIListener.micOpen();
                 }
                 break;
             case R.id.recordTb:
@@ -332,7 +336,6 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
                     break;
                 case SWITCH_VIDEO_TO_AUDIO:
                     Log.d(TAG,"对方请求切换到音频通话");
-                    avChatUIListener.videoSwitchAudio();
                     break;
                 case NOTIFY_VIDEO_OFF:
                     Log.d(TAG,"视频关闭");
@@ -348,52 +351,7 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
         }
     };
 
-    @Override
-    public void onHangUp() {
-        avChatUIListener.onHangUp();
-    }
-
-    @Override
-    public void onRefuse() {
-
-    }
-
-    @Override
-    public void onReceive() {
-
-    }
-
-    @Override
-    public void toggleMute() {
-
-    }
-
-    @Override
-    public void toggleSpeaker() {
-
-    }
-
-    @Override
-    public void toggleRecord() {
-
-    }
-
-    @Override
-    public void videoSwitchAudio() {
-        avChatUIListener.videoSwitchAudio();
-    }
-
-    @Override
-    public void audioSwitchVideo() {
-
-    }
-
-    @Override
-    public void switchCamera() {
-        AVChatManager.getInstance().switchCamera(); // 切换摄像头（主要用于前置和后置摄像头切换）
-    }
-
-    @Override
+    
     public void closeCamera() {
 
         if(isClosedCamera){
@@ -409,8 +367,5 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
         }
     }
 
-    @Override
-    public void receiveSwitchAudioToVideo() {
 
-    }
 }
