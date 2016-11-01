@@ -49,6 +49,7 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
     private ToggleButton close_camera;
     private View hangup;
 
+
     private AVChatSurface avChatSurface;
 
     private AVChatActivity avchatActivity;
@@ -406,5 +407,10 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
             AVChatManager.getInstance().muteLocalVideo(false);
             avChatSurface.localVideoOn();
         }
+    }
+
+    @Override
+    public void receiveSwitchAudioToVideo() {
+
     }
 }

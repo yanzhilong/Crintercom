@@ -44,12 +44,35 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:gravity="center_vertical">
 
+        <!-- 对方切换成视频请求同意 -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:id="@+id/switch_video_request"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/refuse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="拒绝"/>
+
+            <Button
+                android:id="@+id/receive"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="同意"/>
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:clickable="true"
             android:descendantFocusability="beforeDescendants"
             android:orientation="horizontal">

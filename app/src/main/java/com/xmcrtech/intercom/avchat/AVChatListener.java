@@ -16,4 +16,5 @@ public interface AVChatListener extends Serializable{
     void audioSwitchVideo();//切换到视频
     void switchCamera();//切换摄像头
     void closeCamera();//关闭摄像头
+    void receiveSwitchAudioToVideo();//同意音频切换到视频
 }

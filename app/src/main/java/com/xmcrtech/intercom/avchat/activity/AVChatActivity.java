@@ -208,6 +208,32 @@ public class AVChatActivity extends AppCompatActivity implements AVChatUI.AVChat
         public void closeCamera() {
 
         }
+
+        @Override
+        public void receiveSwitchAudioToVideo() {
+            AVChatManager.getInstance().ackSwitchToVideo(true, new AVChatCallback<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    if(!incallVideoFragment.isAdded()){
+                        Bundle bundle１ = new Bundle();
+                        bundle１.putString(IncallAudioFragment.ACCOUNT,receiveraccount);
+                        bundle１.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
+                        incallVideoFragment.setArguments(bundle１);
+                    }
+                    switchFragment(incallVideoFragment);
+                }
+
+                @Override
+                public void onFailed(int code) {
+
+                }
+
+                @Override
+                public void onException(Throwable exception) {
+
+                }
+            });
+        }
     };
 
 

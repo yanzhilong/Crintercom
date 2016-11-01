@@ -304,6 +304,11 @@ public class AVChatUI implements AVChatListener {
         Log.d(TAG,"关闭摄像头");
     }
 
+    @Override
+    public void receiveSwitchAudioToVideo() {
+
+    }
+
 
     //用于回調Activity，用于着装通话界面
     public interface AVChatListener {

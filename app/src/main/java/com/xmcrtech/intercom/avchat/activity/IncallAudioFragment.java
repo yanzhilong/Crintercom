@@ -42,6 +42,7 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
     private ToggleButton recordTb;
     private View hangup;
     private TextView status;//当前状态，正在通话中，正在等待对方同意
+    private View switch_video_request;
 
     private AVChatListener avChatUIListener;
 
@@ -90,6 +91,10 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
         recordTb.setOnCheckedChangeListener(this);
         hangup.setOnClickListener(this);
 
+        switch_video_request = root.findViewById(R.id.switch_video_request);
+        root.findViewById(R.id.receive).setOnClickListener(this);
+        root.findViewById(R.id.refuse).setOnClickListener(this);
+
         //如果有设置菜单，需要加这个
         setHasOptionsMenu(true);
 
@@ -115,6 +120,8 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
             status.setText("正在通话中");
             muteTb.setChecked(AVChatManager.getInstance().isLocalAudioMuted());
             speakerTb.setChecked(AVChatManager.getInstance().speakerEnabled());
+        }else{
+            switch_video_request.setVisibility(View.GONE);
         }
     }
 
@@ -146,7 +153,8 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
             switch (netCallControlNotification.getControlCommand()) {
                 case SWITCH_AUDIO_TO_VIDEO:
                     Log.d(TAG,"对方请求切换到视频通话");
-
+                    status.setText("对方请求切换到视频通话");
+                    switch_video_request.setVisibility(View.VISIBLE);
                     break;
                 case SWITCH_AUDIO_TO_VIDEO_REJECT:
                     Log.d(TAG,"请求切换到视频被拒绝");
@@ -166,6 +174,17 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
 
             case R.id.switch_video:
                 audioSwitchVideo();
+                break;
+            case R.id.receive:
+                //同意切换到视频
+                status.setText("正在通话中");
+                receiveSwitchAudioToVideo();
+                break;
+            case R.id.refuse:
+                //拒绝切换到视频
+                status.setText("正在通话中");
+                AVChatManager.getInstance().ackSwitchToVideo(false, null); // 音频切换到视频请求的回应. true为同意，false为拒绝
+                switch_video_request.setVisibility(View.GONE);
                 break;
             default:
                 break;
@@ -252,5 +271,10 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
     @Override
     public void closeCamera() {
 
+    }
+
+    @Override
+    public void receiveSwitchAudioToVideo() {
+        avChatUIListener.receiveSwitchAudioToVideo();
     }
 }
