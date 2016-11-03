@@ -53,6 +53,14 @@
                 android:textOn="摄像头" />
 
             <ToggleButton
+                android:id="@+id/muteTb"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textOff="静音"
+                android:textOn="静音" />
+
+            <ToggleButton
                 android:id="@+id/recordTb"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
