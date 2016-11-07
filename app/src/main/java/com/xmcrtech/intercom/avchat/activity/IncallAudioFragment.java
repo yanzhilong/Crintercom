@@ -49,6 +49,7 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
         super.onAttach(context);
         if(context instanceof Activity){
             avchatActivity = (AVChatActivity) context;
+            avChatUIListener = avchatActivity.getAvChatListener();
             avchatActivity.addCallStateChangeListener(new AVChatActivity.CallStateChangeListener() {
                 @Override
                 public void onCallStateChange(CallStateEnum callStateEnum) {
@@ -86,7 +87,7 @@ public class IncallAudioFragment extends Fragment implements View.OnClickListene
         Bundle bundle = getArguments();
         if (bundle != null) {
             account = bundle.getString(ACCOUNT);
-            avChatUIListener = (AVChatListener) bundle.getSerializable(AVCHATLISTENER);
+            //avChatUIListener = (AVChatListener) bundle.getSerializable(AVCHATLISTENER);
         }
     }
 

@@ -63,6 +63,7 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
         super.onAttach(context);
         if (context instanceof Activity) {
             avchatActivity = (AVChatActivity) context;
+            avChatUIListener = avchatActivity.getAvChatListener();
             avchatActivity.addCallStateChangeListener(new AVChatActivity.CallStateChangeListener() {
                 @Override
                 public void onCallStateChange(CallStateEnum callStateEnum) {
@@ -87,7 +88,7 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
 
         if (bundle != null) {
             account = bundle.getString(ACCOUNT);
-            avChatUIListener = (AVChatListener) bundle.getSerializable(AVCHATLISTENER);
+            //avChatUIListener = (AVChatListener) bundle.getSerializable(AVCHATLISTENER);
         }
 
         //注册监听

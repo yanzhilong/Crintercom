@@ -46,8 +46,8 @@ public class IncomingFragment extends Fragment implements View.OnClickListener {
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof Activity) {
-
             avchatActivity = (AVChatActivity) context;
+            avChatUIListener = avchatActivity.getAvChatListener();
             avchatActivity.addCallStateChangeListener(new AVChatActivity.CallStateChangeListener() {
                 @Override
                 public void onCallStateChange(CallStateEnum callStateEnum) {
@@ -74,7 +74,7 @@ public class IncomingFragment extends Fragment implements View.OnClickListener {
         if (bundle != null) {
             account = bundle.getString(ACCOUNT);
             avChatType = (AVChatType) bundle.getSerializable(AVCHATTYPE);
-            avChatUIListener = (AVChatListener) bundle.getSerializable(AVCHATLISTENER);
+            //avChatUIListener = (AVChatListener) bundle.getSerializable(AVCHATLISTENER);
         }
     }
 

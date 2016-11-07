@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.netease.nimlib.sdk.Observer;
@@ -94,6 +95,9 @@ public class AVChatActivity extends AppCompatActivity{
         View root = LayoutInflater.from(this).inflate(R.layout.avchat_act, null);
         setContentView(root);
 
+        int flags = WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON;
+        getWindow().addFlags(flags);
+
         callStateEnum = (CallStateEnum) getIntent().getSerializableExtra(CALLSTATE);
 
         //判断来电还是去电
@@ -120,6 +124,10 @@ public class AVChatActivity extends AppCompatActivity{
 
         //注册监听
         registerNetCallObserver(true);
+    }
+
+    public AVChatListener getAvChatListener() {
+        return avChatListener;
     }
 
     /**
@@ -315,7 +323,7 @@ public class AVChatActivity extends AppCompatActivity{
         if(!incallVideoFragment.isAdded()){
             Bundle bundle１ = new Bundle();
             bundle１.putString(IncallAudioFragment.ACCOUNT, requestaccount);
-            bundle１.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
+            //bundle１.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
             incallVideoFragment.setArguments(bundle１);
         }
         switchFragment(incallVideoFragment);
@@ -328,7 +336,7 @@ public class AVChatActivity extends AppCompatActivity{
 
             Bundle bundle = new Bundle();
             bundle.putString(IncallAudioFragment.ACCOUNT, requestaccount);
-            bundle.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
+            //bundle.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
             incallAudioFragment.setArguments(bundle);
 
         }
@@ -403,7 +411,7 @@ public class AVChatActivity extends AppCompatActivity{
 
         Bundle bundle = new Bundle();
         bundle.putString(IncomingFragment.ACCOUNT, requestaccount);
-        bundle.putSerializable(IncomingFragment.AVCHATLISTENER,avChatListener);
+        //bundle.putSerializable(IncomingFragment.AVCHATLISTENER,avChatListener);
         bundle.putSerializable(IncomingFragment.AVCHATTYPE,avChatType);
         incomingFragment.setArguments(bundle);
         getSupportFragmentManager().beginTransaction()
@@ -423,7 +431,7 @@ public class AVChatActivity extends AppCompatActivity{
         Bundle bundle = new Bundle();
         bundle.putString(OutGoingFragment.ACCOUNT, requestaccount);
         bundle.putSerializable(OutGoingFragment.AVCHATTYPE,avChatType);
-        bundle.putSerializable(OutGoingFragment.AVCHATLISTENER,avChatListener);
+        //bundle.putSerializable(OutGoingFragment.AVCHATLISTENER,avChatListener);
         outGoingFragment.setArguments(bundle);
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.framelayout, outGoingFragment).commit();
@@ -698,7 +706,7 @@ public class AVChatActivity extends AppCompatActivity{
                 changeCallStateEnum(CallStateEnum.AUDIO);
                 Bundle bundle = new Bundle();
                 bundle.putString(IncallAudioFragment.ACCOUNT, requestaccount);
-                bundle.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
+                //bundle.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
                 incallAudioFragment.setArguments(bundle);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.framelayout, incallAudioFragment).commit();
@@ -708,7 +716,7 @@ public class AVChatActivity extends AppCompatActivity{
                 changeCallStateEnum(CallStateEnum.VIDEO);
                 Bundle bundle１ = new Bundle();
                 bundle１.putString(IncallAudioFragment.ACCOUNT, requestaccount);
-                bundle１.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
+                //bundle１.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
                 incallVideoFragment.setArguments(bundle１);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.framelayout, incallVideoFragment).commit();

@@ -48,6 +48,7 @@ public class OutGoingFragment extends Fragment implements View.OnClickListener {
         super.onAttach(context);
         if(context instanceof Activity){
             avchatActivity = (AVChatActivity) context;
+            avChatUIListener = avchatActivity.getAvChatListener();
         }
     }
 
@@ -64,7 +65,7 @@ public class OutGoingFragment extends Fragment implements View.OnClickListener {
         Bundle bundle = getArguments();
         if (bundle != null) {
             account = bundle.getString(ACCOUNT);
-            avChatUIListener = (AVChatListener) bundle.getSerializable(AVCHATLISTENER);
+            //avChatUIListener = (AVChatListener) bundle.getSerializable(AVCHATLISTENER);
             avChatType = (AVChatType) bundle.getSerializable(AVCHATTYPE);
         }
         waitDialog = new WaitDialog(this.getContext(), getString(R.string.connectioning), true,onCancelListener);
