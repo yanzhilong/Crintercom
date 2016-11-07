@@ -3,7 +3,6 @@ package com.xmcrtech.intercom.avchat.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,14 +21,12 @@ import com.netease.nimlib.sdk.avchat.model.AVChatAudioFrame;
 import com.netease.nimlib.sdk.avchat.model.AVChatCalleeAckEvent;
 import com.netease.nimlib.sdk.avchat.model.AVChatCommonEvent;
 import com.netease.nimlib.sdk.avchat.model.AVChatControlEvent;
-import com.netease.nimlib.sdk.avchat.model.AVChatData;
 import com.netease.nimlib.sdk.avchat.model.AVChatOnlineAckEvent;
 import com.netease.nimlib.sdk.avchat.model.AVChatVideoFrame;
 import com.xmcrtech.intercom.R;
 import com.xmcrtech.intercom.avchat.AVChatListener;
 import com.xmcrtech.intercom.avchat.AVChatSoundPlayer;
 import com.xmcrtech.intercom.avchat.constant.CallStateEnum;
-import com.xmcrtech.intercom.config.SessionConfig;
 import com.xmcrtech.intercom.util.NetworkUtil;
 
 import java.util.ArrayList;
@@ -42,7 +39,6 @@ public class AVChatActivity extends AppCompatActivity{
 
     private static final String TAG = AVChatActivity.class.getSimpleName();
 
-    private static final String AVCHATDATA = "AVChatData";//呼入数据
     private static final String CALLSTATE = "CallState";//当前状态
     private static final String AVCHATTYPE = "AvchatType";//当前通话类型
     private static final String REQUEST_ACCOUNT = "request_account";//呼出账号
@@ -50,18 +46,12 @@ public class AVChatActivity extends AppCompatActivity{
     private String requestaccount; // 呼出或呼入方的账号
     private boolean callsuccess = false;//是否通话成功标志位
 
-    private IncomingFragment incomingFragment = IncomingFragment.newInstance();
-    private IncallAudioFragment incallAudioFragment = IncallAudioFragment.newInstance();
     private IncallVideoFragment incallVideoFragment = IncallVideoFragment.newInstance();
-    private OutGoingFragment outGoingFragment = OutGoingFragment.newInstance();
-    private Fragment currentFragment;
 
     //当前通话状态数据
     CallStateEnum callStateEnum = CallStateEnum.INVALID;//默认未知状态
     //当前通话类型
     AVChatType avChatType;
-
-    CallStateChangeListener callStateChangeListener;//当前状态变化监听
 
     List<CallStateChangeListener> callStateChangeListeners = new ArrayList<>();
 
@@ -98,22 +88,12 @@ public class AVChatActivity extends AppCompatActivity{
 
         //判断来电还是去电
         switch (callStateEnum){
-            case INCOMING://来电
-
-                AVChatData avChatData = (AVChatData) getIntent().getSerializableExtra(AVCHATDATA);
-                requestaccount = avChatData.getAccount();
-                avChatType = avChatData.getChatType();
-                inComingCalling();
-                callStateEnum = avChatType == AVChatType.AUDIO ? CallStateEnum.AUDIOINCOMING : CallStateEnum.VIDEOINCOMING;
-                Log.d(TAG,"收到"+ requestaccount + "的" + (avChatType == AVChatType.AUDIO ? "音频" : "视频")+"来电");
-
-                break;
             case OUTGOING://去电
 
                 requestaccount = getIntent().getStringExtra(REQUEST_ACCOUNT);
                 avChatType = (AVChatType) getIntent().getSerializableExtra(AVCHATTYPE);
+                changeCallStateEnum(avChatType == AVChatType.AUDIO ? CallStateEnum.AUDIOOUTGOING : CallStateEnum.VIDEOOUTGOING);
                 outgoingCalling();
-                callStateEnum = avChatType == AVChatType.AUDIO ? CallStateEnum.AUDIOOUTGOING : CallStateEnum.VIDEOOUTGOING;
                 Log.d(TAG,"正在"+ (avChatType == AVChatType.AUDIO ? "音频" : "视频")+"呼叫"+ requestaccount);
                 break;
         }
@@ -177,56 +157,10 @@ public class AVChatActivity extends AppCompatActivity{
 
         @Override
         public void videoSwitchAudio() {
-            AVChatManager.getInstance().requestSwitchToAudio(new AVChatCallback<Void>() {
-                @Override
-                public void onSuccess(Void aVoid) {
-                    // 界面布局切换。
-               /* onCallStateChange(CallStateEnum.AUDIO);
-                onVideoToAudio();*/
-                    startAudioSession();
-                }
-
-                @Override
-                public void onFailed(int code) {
-                    changeCallStateEnum(CallStateEnum.OUTGOING_VIDEO_TO_AUDIO_FAIL);
-                    changeCallStateEnum(CallStateEnum.VIDEO);
-                }
-
-                @Override
-                public void onException(Throwable exception) {
-                    changeCallStateEnum(CallStateEnum.OUTGOING_VIDEO_TO_AUDIO_FAIL);
-                    changeCallStateEnum(CallStateEnum.VIDEO);
-                }
-            });
         }
 
         @Override
         public void audioSwitchVideo() {
-
-            /**
-             * 请求音频切换到视频
-             */
-            changeCallStateEnum(CallStateEnum.OUTGOING_AUDIO_TO_VIDEO);
-            AVChatManager.getInstance().requestSwitchToVideo(new AVChatCallback<Void>() {
-                @Override
-                public void onSuccess(Void aVoid) {
-                    Log.d(TAG, "requestSwitchToVideo onSuccess");
-                }
-
-                @Override
-                public void onFailed(int code) {
-                    Log.d(TAG, "requestSwitchToVideo onFailed" + code);
-                    changeCallStateEnum(CallStateEnum.OUTGOING_AUDIO_TO_VIDEO_FAIL);
-                    changeCallStateEnum(CallStateEnum.AUDIO);
-                }
-
-                @Override
-                public void onException(Throwable exception) {
-                    Log.d(TAG, "requestSwitchToVideo onException" + exception);
-                    changeCallStateEnum(CallStateEnum.OUTGOING_AUDIO_TO_VIDEO_FAIL);
-                    changeCallStateEnum(CallStateEnum.AUDIO);
-                }
-            });
 
         }
 
@@ -242,8 +176,6 @@ public class AVChatActivity extends AppCompatActivity{
 
         @Override
         public void refuseaudioSwitchVideo() {
-            AVChatManager.getInstance().ackSwitchToVideo(false, null); // 音频切换到视频请求的回应. true为同意，false为拒绝
-            changeCallStateEnum(CallStateEnum.AUDIO);
         }
 
         @Override
@@ -259,103 +191,34 @@ public class AVChatActivity extends AppCompatActivity{
         //关闭扬声器
         @Override
         public void speakerMute() {
-            AVChatManager.getInstance().setSpeaker(false);
         }
 
         //开启扬声器
         @Override
         public void speakerOpen() {
-            AVChatManager.getInstance().setSpeaker(true);
         }
 
         //拒绝接听
         @Override
         public void refuse() {
-            onAVChatRefuse();
+
         }
 
         //接听来电
         @Override
         public void answer() {
-            switch (callStateEnum){
-                case AUDIOINCOMING:
-                case VIDEOINCOMING:
-                    onAVChatAnswer();
-                    break;
-            }
+
         }
 
 
         @Override
         public void receiveSwitchAudioToVideo() {
-            AVChatManager.getInstance().ackSwitchToVideo(true, new AVChatCallback<Void>() {
-                @Override
-                public void onSuccess(Void aVoid) {
-                    startVideoSession();
-                }
-
-                @Override
-                public void onFailed(int code) {
-                    changeCallStateEnum(CallStateEnum.RECEIVE_AUDIO_TO_VIDEO_FAIL);
-                    changeCallStateEnum(CallStateEnum.AUDIO);
-                }
-
-                @Override
-                public void onException(Throwable exception) {
-                    changeCallStateEnum(CallStateEnum.RECEIVE_AUDIO_TO_VIDEO_FAIL);
-                    changeCallStateEnum(CallStateEnum.AUDIO);
-                }
-            });
-
         }
     };
-
-    //启动视频会话
-    private void startVideoSession(){
-        if(!incallVideoFragment.isAdded()){
-            Bundle bundle１ = new Bundle();
-            bundle１.putString(IncallAudioFragment.ACCOUNT, requestaccount);
-            bundle１.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
-            incallVideoFragment.setArguments(bundle１);
-        }
-        switchFragment(incallVideoFragment);
-        changeCallStateEnum(CallStateEnum.VIDEO);
-    }
-
-    //启动音频会话
-    private void startAudioSession(){
-        if(!incallAudioFragment.isAdded()){
-
-            Bundle bundle = new Bundle();
-            bundle.putString(IncallAudioFragment.ACCOUNT, requestaccount);
-            bundle.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
-            incallAudioFragment.setArguments(bundle);
-
-        }
-        switchFragment(incallAudioFragment);
-        changeCallStateEnum(CallStateEnum.AUDIO);
-    }
-
 
     @Override
     protected void onResume() {
         super.onResume();
-    }
-
-    //切换Fragment
-    private void switchFragment(Fragment fragment){
-
-        if (fragment != currentFragment) {
-            if (!fragment.isAdded()) {
-                getSupportFragmentManager().beginTransaction().hide(currentFragment)
-                .add(R.id.framelayout, fragment,"audio")
-                .commit();
-            } else {
-                getSupportFragmentManager().beginTransaction().hide(currentFragment)
-                        .show(fragment).commit();
-            }
-            currentFragment = fragment;
-        }
     }
 
 
@@ -381,37 +244,6 @@ public class AVChatActivity extends AppCompatActivity{
     }
 
     /**
-     * 呼入调用
-     * @param context
-     * @param config
-     */
-    public static void incoming(Context context, AVChatData config) {
-        Intent intent = new Intent();
-        intent.setClass(context, AVChatActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(AVCHATDATA, config);
-        intent.putExtra(CALLSTATE, CallStateEnum.INCOMING);
-        context.startActivity(intent);
-    }
-
-    /**
-     * 接听
-     */
-    private void inComingCalling() {
-
-        AVChatSoundPlayer.instance(getApplicationContext()).play(AVChatSoundPlayer.RingerTypeEnum.RING);
-
-        Bundle bundle = new Bundle();
-        bundle.putString(IncomingFragment.ACCOUNT, requestaccount);
-        bundle.putSerializable(IncomingFragment.AVCHATLISTENER,avChatListener);
-        bundle.putSerializable(IncomingFragment.AVCHATTYPE,avChatType);
-        incomingFragment.setArguments(bundle);
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.framelayout, incomingFragment).commit();
-    }
-
-
-    /**
      * 拨打
      */
     private void outgoingCalling() {
@@ -421,12 +253,12 @@ public class AVChatActivity extends AppCompatActivity{
             return;
         }
         Bundle bundle = new Bundle();
-        bundle.putString(OutGoingFragment.ACCOUNT, requestaccount);
-        bundle.putSerializable(OutGoingFragment.AVCHATTYPE,avChatType);
-        bundle.putSerializable(OutGoingFragment.AVCHATLISTENER,avChatListener);
-        outGoingFragment.setArguments(bundle);
+        bundle.putString(IncallVideoFragment.ACCOUNT, requestaccount);
+        bundle.putSerializable(IncallVideoFragment.AVCHATTYPE,avChatType);
+        bundle.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
+        incallVideoFragment.setArguments(bundle);
         getSupportFragmentManager().beginTransaction()
-                .add(R.id.framelayout, outGoingFragment).commit();
+                .add(R.id.framelayout, incallVideoFragment).commit();
 
     }
 
@@ -537,20 +369,15 @@ public class AVChatActivity extends AppCompatActivity{
             switch (netCallControlNotification.getControlCommand()) {
                 case SWITCH_AUDIO_TO_VIDEO:
                     Log.d(TAG,"对方请求切换到视频通话");
-                    changeCallStateEnum(CallStateEnum.INCOMING_AUDIO_TO_VIDEO);
                     break;
                 case SWITCH_AUDIO_TO_VIDEO_AGREE:
                     Log.d(TAG,"对方同意切换到视频通话");
-                    startVideoSession();
                     break;
                 case SWITCH_AUDIO_TO_VIDEO_REJECT:
                     Log.d(TAG,"请求切换到视频被拒绝");
-                    changeCallStateEnum(CallStateEnum.OUTGOING_AUDIO_TO_VIDEO_REJECT);
-                    changeCallStateEnum(CallStateEnum.AUDIO);
                     break;
                 case SWITCH_VIDEO_TO_AUDIO:
                     Log.d(TAG,"对方请求切换到音频通话");
-                    avChatListener.videoSwitchAudio();
                     break;
                 case NOTIFY_VIDEO_OFF:
                     Log.d(TAG,"视频关闭");
@@ -664,7 +491,6 @@ public class AVChatActivity extends AppCompatActivity{
         @Override
         public void onUserJoined(String s) {
             Log.d(TAG, "onUserJoin -> " + s);
-            incallVideoFragment.mAVChatStateObserver.onUserJoined(s);
         }
 
         @Override
@@ -693,27 +519,7 @@ public class AVChatActivity extends AppCompatActivity{
             callsuccess = true;//标记通话成功
             Log.d(TAG,avChatType == AVChatType.AUDIO ? "音频" : "视频" + "通话已经接通");
             //切换到相应界面
-            if (avChatType == AVChatType.AUDIO) {
-
-                changeCallStateEnum(CallStateEnum.AUDIO);
-                Bundle bundle = new Bundle();
-                bundle.putString(IncallAudioFragment.ACCOUNT, requestaccount);
-                bundle.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
-                incallAudioFragment.setArguments(bundle);
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.framelayout, incallAudioFragment).commit();
-                currentFragment = incallAudioFragment;
-            } else {
-
-                changeCallStateEnum(CallStateEnum.VIDEO);
-                Bundle bundle１ = new Bundle();
-                bundle１.putString(IncallAudioFragment.ACCOUNT, requestaccount);
-                bundle１.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
-                incallVideoFragment.setArguments(bundle１);
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.framelayout, incallVideoFragment).commit();
-                currentFragment = incallVideoFragment;
-            }
+            changeCallStateEnum(CallStateEnum.VIDEO);
         }
 
         @Override
@@ -751,7 +557,7 @@ public class AVChatActivity extends AppCompatActivity{
     }
 
     /**
-     * 着装会話
+     * 关闭会話
      */
     public void closeSession(AvchatExitEnum avchatExitEnum){
 
@@ -809,60 +615,6 @@ public class AVChatActivity extends AppCompatActivity{
         }
     }
 
-    /**
-     * 语音接听亚电
-     */
-    public void onAVChatAnswer(){
 
-        AVChatSoundPlayer.instance(this).stop();
-        changeCallStateEnum(CallStateEnum.ANSWERCONNECTING);
-        AVChatManager.getInstance().accept(SessionConfig.newInstance(this).getAvChatOptionalConfig(), new AVChatCallback<Void>() {
-            @Override
-            public void onSuccess(Void v) {
-                Log.d(TAG, "接听来电成功");
-            }
-
-            @Override
-            public void onFailed(int code) {
-                if (code == -1) {
-                    closeSession(AvchatExitEnum.LOCALDEVICEFAIL);
-                } else {
-                    closeSession(AvchatExitEnum.CONNECTIONFAIL);
-                }
-                Log.d(TAG, "接听来电失败");
-            }
-
-            @Override
-            public void onException(Throwable exception) {
-                closeSession(AvchatExitEnum.UNKNOWEXCEPTION);
-                Log.d(TAG, "接听来电异常:" + exception);
-            }
-        });
-    }
-
-    /**
-     * 拒绝来电
-     */
-    public void onAVChatRefuse(){
-
-        AVChatSoundPlayer.instance(this).stop();
-        AVChatManager.getInstance().hangUp(new AVChatCallback<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-
-            }
-
-            @Override
-            public void onFailed(int code) {
-                Log.d(TAG, "reject sucess->" + code);
-            }
-
-            @Override
-            public void onException(Throwable exception) {
-                Log.d(TAG, "reject sucess");
-            }
-        });
-        closeSession(AvchatExitEnum.OTHER);
-    }
 
 }

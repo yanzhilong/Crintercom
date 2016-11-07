@@ -11,7 +11,6 @@ import com.netease.nimlib.sdk.SDKOptions;
 import com.netease.nimlib.sdk.auth.LoginInfo;
 import com.netease.nimlib.sdk.avchat.AVChatManager;
 import com.netease.nimlib.sdk.avchat.model.AVChatData;
-import com.xmcrtech.intercom.avchat.activity.AVChatActivity;
 import com.xmcrtech.intercom.config.Preferences;
 import com.xmcrtech.intercom.util.ScreenUtil;
 import com.xmcrtech.intercom.util.SystemUtil;
@@ -90,8 +89,6 @@ public class MyApplication extends Application {
             public void onEvent(AVChatData data) {
                 String extra = data.getExtra();
                 Log.e("Extra", "Extra Message->" + extra);
-                // 有网络来电打开AVChatActivity
-                AVChatActivity.incoming(Constant.getContext(), data);
             }
         }, register);
     }
