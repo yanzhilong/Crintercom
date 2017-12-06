@@ -132,6 +132,7 @@ public class AVChatActivity extends AppCompatActivity{
 
     /**
      * 音视频切换回調
+     * 接听监听
      */
     private AVChatListener avChatListener = new AVChatListener() {
         @Override
@@ -421,6 +422,7 @@ public class AVChatActivity extends AppCompatActivity{
 
     /**
      * 拨打
+     * 拔打出去
      */
     private void outgoingCalling() {
         if (!NetworkUtil.isNetAvailable(AVChatActivity.this)) { // 网络不可用
@@ -452,6 +454,8 @@ public class AVChatActivity extends AppCompatActivity{
         AVChatManager.getInstance().observeOnlineAckNotification(onlineAckObserver, register);//接听的时候被其它客户端接听了
         AVChatManager.getInstance().observeTimeoutNotification(timeoutObserver, register);//网絡出錯，或对方呼入的时候自己未接听
         AVChatManager.getInstance().observeAutoHangUpForLocalPhone(autoHangUpForLocalPhoneObserver, register);
+
+        //AVChatManager.getInstance().startLocalRecord();
     }
 
 
@@ -537,6 +541,7 @@ public class AVChatActivity extends AppCompatActivity{
 
     /**
      * 注册/注销网络通话控制消息（音视频模式切换通知）
+     * 这里实现开门
      */
     Observer<AVChatControlEvent> callControlObserver = new Observer<AVChatControlEvent>() {
         @Override
@@ -571,6 +576,15 @@ public class AVChatActivity extends AppCompatActivity{
                     break;
                 case NOTIFY_RECORD_STOP:
                     Toast.makeText(AVChatActivity.this, "对方结束了通话录制", Toast.LENGTH_SHORT).show();
+                    break;
+                case NOTIFY_AUDIO_ON:
+                    Log.d(TAG,"对方开启声音");
+                    Toast.makeText(AVChatActivity.this, "开门", Toast.LENGTH_SHORT).show();
+
+                    break;
+                case NOTIFY_AUDIO_OFF:
+                    Log.d(TAG,"对方停止声音");
+                    Toast.makeText(AVChatActivity.this, "开门", Toast.LENGTH_SHORT).show();
                     break;
                 default:
                     break;
@@ -615,6 +629,7 @@ public class AVChatActivity extends AppCompatActivity{
 
     /**
      * 监听通话发起后的状态
+     * 接通后的操作
      */
     private AVChatStateObserver mAVChatStateObserver = new AVChatStateObserver() {
         @Override
@@ -818,7 +833,7 @@ public class AVChatActivity extends AppCompatActivity{
     }
 
     /**
-     * 语音接听亚电
+     * 视频或语音接听来电
      */
     public void onAVChatAnswer(){
 

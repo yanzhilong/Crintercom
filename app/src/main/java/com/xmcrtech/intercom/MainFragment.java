@@ -3,10 +3,13 @@ package com.xmcrtech.intercom;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -14,6 +17,8 @@ import com.netease.nimlib.sdk.NIMClient;
 import com.netease.nimlib.sdk.Observer;
 import com.netease.nimlib.sdk.StatusCode;
 import com.netease.nimlib.sdk.auth.AuthServiceObserver;
+import com.netease.nimlib.sdk.avchat.constant.AVChatType;
+import com.xmcrtech.intercom.avchat.activity.AVChatActivity;
 import com.xmcrtech.intercom.config.Preferences;
 import com.xmcrtech.intercom.login.LoginActivity;
 
@@ -25,6 +30,8 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     private Object object;
     private TextView userinfoTv;
     private Button loginout;
+    private EditText inputedit;
+    private String inputstr;
 
     public static MainFragment newInstance() {
         return new MainFragment();
@@ -52,6 +59,46 @@ public class MainFragment extends Fragment implements View.OnClickListener {
 
         userinfoTv = (TextView) root.findViewById(R.id.userinfo);
         loginout = (Button) root.findViewById(R.id.loginout);
+        inputedit = (EditText) root.findViewById(R.id.inputedit);
+
+        inputedit.addTextChangedListener(new TextWatcher(){
+
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+
+                //text  输入框中改变前的字符串信息
+                //start 输入框中改变前的字符串的起始位置
+                //count 输入框中改变前后的字符串改变数量一般为0
+                //after 输入框中改变后的字符串与起始位置的偏移量
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                //text  输入框中改变后的字符串信息
+                //start 输入框中改变后的字符串的起始位置
+                //before 输入框中改变前的字符串的位置 默认为0
+                //count 输入框中改变后的一共输入字符串的数量
+                //判断最后一位
+                if(charSequence.length() > 0){
+                    String c = charSequence.toString().substring(charSequence.toString().length() - 1).substring(0,1);
+                    Toast.makeText(MainFragment.this.getContext(),c,Toast.LENGTH_SHORT).show();
+                    if(c.equals("*")){
+                        inputedit.setText("");
+                    }
+                    if(c.equals("#")){
+                        inputedit.setEnabled(false);
+                        outgoing();
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+                //edit  输入结束呈现在输入框中的信息
+            }
+        });
 
         loginout.setOnClickListener(this);
         //如果有设置菜单，需要加这个
@@ -133,5 +180,13 @@ public class MainFragment extends Fragment implements View.OnClickListener {
             default:
                 break;
         }
+    }
+
+    /**
+     * 呼出
+     */
+    private void outgoing(){
+        //默认视频通话
+        AVChatActivity.outgoing(MainFragment.this.getContext(),"techxmcr", AVChatType.VIDEO);
     }
 }

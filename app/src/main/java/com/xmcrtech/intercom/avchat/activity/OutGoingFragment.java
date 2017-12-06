@@ -24,7 +24,10 @@ import com.xmcrtech.intercom.avchat.AVChatSoundPlayer;
 import com.xmcrtech.intercom.config.SessionConfig;
 import com.xmcrtech.intercom.dialog.WaitDialog;
 
-
+/**
+ * 输出界面的Fragment
+ *
+ */
 public class OutGoingFragment extends Fragment implements View.OnClickListener {
 
     public static final String ACCOUNT = "account";

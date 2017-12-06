@@ -42,12 +42,14 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
 
     private String account = "";
 
+    private ToggleButton recordTb;//录制
     private View switchAudio;//切换到视频
     private View switch_camera;//切换前置摄像头和后置摄像头
     private Chronometer time; //通话时间
     private ToggleButton muteTb;
     private ToggleButton close_camera;
     private View hangup;
+    private View open_door;
 
 
     private AVChatSurface avChatSurface;
@@ -105,9 +107,11 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
 
         isInit = true;
         Log.d(TAG, "onCreateView" + account);
-        if (account != null) {
-            avChatSurface.initLargeSurfaceView(account);
-        }
+//        if (account != null) {
+//            avChatSurface.initLargeSurfaceView(account);
+//        }
+
+        recordTb = (ToggleButton)root.findViewById(R.id.recordTb);
         switchAudio = root.findViewById(R.id.switch_audio);
         switchAudio.setOnClickListener(this);
 
@@ -121,13 +125,16 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
         muteTb = (ToggleButton) root.findViewById(R.id.muteTb);
         muteTb.setChecked(false);
 
+        open_door = root.findViewById(R.id.open_door);
         hangup = root.findViewById(R.id.video_hangup);
         muteTb.setOnCheckedChangeListener(this);
         close_camera.setOnCheckedChangeListener(this);
+        recordTb.setOnCheckedChangeListener(this);
         hangup.setOnClickListener(this);
-
+        open_door.setOnClickListener(this);
         //初始化本地图像
-        avChatSurface.initSmallSurfaceView(Constant.getAccount());
+        //avChatSurface.initSmallSurfaceView(Constant.getAccount());
+        avChatSurface.initLargeSurfaceView(Constant.getAccount());
 
         //如果有设置菜单，需要加这个
         setHasOptionsMenu(true);
@@ -288,6 +295,11 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
             case R.id.switch_camera:
                 AVChatManager.getInstance().switchCamera(); // 切换摄像头（主要用于前置和后置摄像头切换）
                 break;
+            case R.id.open_door:
+                //开门
+                AVChatManager.getInstance().muteLocalAudio(true);
+                AVChatManager.getInstance().muteLocalAudio(false);
+                break;
             default:
                 break;
         }
@@ -305,17 +317,22 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
                 closeCamera();
             case R.id.muteTb:
                 if (b) {
+                    AVChatManager.getInstance().muteLocalAudio(true);
                     avChatUIListener.micMute();
                 } else {
                     // 打开音频
                     avChatUIListener.micOpen();
+                    AVChatManager.getInstance().muteLocalAudio(false);
                 }
                 break;
             case R.id.recordTb:
                 if (b) {
-                    Toast.makeText(getContext(), "功能未开放", Toast.LENGTH_SHORT).show();
+                    AVChatManager.getInstance().startLocalRecord();
+                    AVChatManager.getInstance().muteLocalAudio(true);
+                    Toast.makeText(getContext(), "功能开放", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(getContext(), "功能未开放", Toast.LENGTH_SHORT).show();
+                    AVChatManager.getInstance().stopLocalRecord();
                 }
                 break;
         }
@@ -345,6 +362,22 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
                 case NOTIFY_VIDEO_ON:
                     Log.d(TAG,"视频开启");
                     avChatSurface.peerVideoOn();
+                    break;
+                case NOTIFY_RECORD_START:
+                    Log.d(TAG,"对方开始录制视频");
+
+                    break;
+                case NOTIFY_RECORD_STOP:
+                    Log.d(TAG,"对方停止录制视频");
+
+                    break;
+                case NOTIFY_AUDIO_ON:
+                    Log.d(TAG,"对方开启声音");
+
+                    break;
+                case NOTIFY_AUDIO_OFF:
+                    Log.d(TAG,"对方停止声音");
+
                     break;
                 default:
                     break;

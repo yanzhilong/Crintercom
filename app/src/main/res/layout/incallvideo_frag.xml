@@ -18,7 +18,7 @@
         android:shadowRadius="1"
         android:text="@string/avchat_switch_to_audio"
         android:textSize="13sp"
-        android:visibility="visible" />
+        android:visibility="gone" />
 
 
     <include layout="@layout/surface_layout"/>
@@ -41,7 +41,8 @@
                 android:id="@+id/switch_camera"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="切换" />
+                android:text="切换"
+                android:visibility="gone"/>
 
             <!-- 关闭摄像头 -->
             <ToggleButton
@@ -50,7 +51,15 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textOff="摄像头"
-                android:textOn="摄像头" />
+                android:textOn="摄像头"
+                android:visibility="gone"/>
+
+            <Button
+                android:id="@+id/open_door"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="开门"/>
 
             <ToggleButton
                 android:id="@+id/muteTb"
@@ -58,7 +67,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textOff="静音"
-                android:textOn="静音" />
+                android:textOn="静音"
+                android:visibility="gone"/>
 
             <ToggleButton
                 android:id="@+id/recordTb"

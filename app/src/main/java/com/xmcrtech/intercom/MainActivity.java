@@ -13,6 +13,13 @@ import com.xmcrtech.intercom.config.Preferences;
 import com.xmcrtech.intercom.login.LoginActivity;
 import com.xmcrtech.intercom.util.ActivityUtils;
 
+/**
+ * 登陆后的第一个界面
+ * 1. 加载一个MainFragment用于呼叫
+ * 2. 输入门牌号码
+ * 3. 注销账号
+ *
+ */
 public class MainActivity extends AppCompatActivity{
 
     private static final String EXTRA_APP_QUIT = "APP_QUIT";
