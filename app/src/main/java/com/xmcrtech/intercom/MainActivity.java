@@ -77,9 +77,11 @@ public class MainActivity extends AppCompatActivity{
 
 
 
-        MainFragment fragment = (MainFragment) getSupportFragmentManager().findFragmentById(R.id.contentFrame);
+//        MainFragment fragment = (MainFragment) getSupportFragmentManager().findFragmentById(R.id.contentFrame);
+        DialerFragment fragment = (DialerFragment) getSupportFragmentManager().findFragmentById(R.id.contentFrame);
+
         if (fragment == null) {
-            fragment = MainFragment.newInstance();
+            fragment = DialerFragment.newInstance();
             ActivityUtils.addFragmentToActivity(getSupportFragmentManager(), fragment, R.id.contentFrame);
         }
     }

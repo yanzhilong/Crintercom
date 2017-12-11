@@ -87,8 +87,9 @@ public class MainFragment extends Fragment implements View.OnClickListener {
                         inputedit.setText("");
                     }
                     if(c.equals("#")){
-                        inputedit.setEnabled(false);
-                        outgoing();
+//                        inputedit.setEnabled(false);
+                        outgoing(inputedit.getText().toString());
+                        inputedit.setText("");
                     }
                 }
             }
@@ -185,7 +186,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     /**
      * 呼出
      */
-    private void outgoing(){
+    public void outgoing(String number){
         //默认视频通话
         AVChatActivity.outgoing(MainFragment.this.getContext(),"techxmcr", AVChatType.VIDEO);
     }
