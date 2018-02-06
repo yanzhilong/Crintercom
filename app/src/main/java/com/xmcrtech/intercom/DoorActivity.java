@@ -6,8 +6,6 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Window;
-import android.view.WindowManager;
 
 import com.netease.nimlib.sdk.NIMClient;
 import com.netease.nimlib.sdk.auth.AuthService;
@@ -22,7 +20,7 @@ import com.xmcrtech.intercom.util.ActivityUtils;
  * 3. 注销账号
  *
  */
-public class MainActivity extends AppCompatActivity{
+public class DoorActivity extends AppCompatActivity{
 
     private static final String EXTRA_APP_QUIT = "APP_QUIT";
 
@@ -32,7 +30,7 @@ public class MainActivity extends AppCompatActivity{
 
     public static void start(Context context, Intent extras) {
         Intent intent = new Intent();
-        intent.setClass(context, MainActivity.class);
+        intent.setClass(context, DoorActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         if (extras != null) {
             intent.putExtras(extras);
@@ -74,25 +72,29 @@ public class MainActivity extends AppCompatActivity{
 //        //设置当前窗体为全屏显示
 //        window.setFlags(flag, flag);
 
-        setContentView(R.layout.main_act);
+        setContentView(R.layout.door_act);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        ActionBar ab = getSupportActionBar();
-        //返回按钮
-        ab.setDisplayHomeAsUpEnabled(false);
-        ab.setDisplayShowHomeEnabled(false);
-        //标题
-        ab.setTitle("叮咚");
+//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+//        setSupportActionBar(toolbar);
+//
+//        ActionBar ab = getSupportActionBar();
+//        //返回按钮
+//        ab.setDisplayHomeAsUpEnabled(false);
+//        ab.setDisplayShowHomeEnabled(false);
+//        //标题
+//        ab.setTitle("叮咚");
 
 
 
         MainFragment mainfragment = (MainFragment) getSupportFragmentManager().findFragmentById(R.id.contentFrame);
         DialerFragment doorfragment = (DialerFragment) getSupportFragmentManager().findFragmentById(R.id.contentFrame);
 
+        if (doorfragment == null && Constant.IsDoor) {
+            doorfragment = DialerFragment.newInstance();
+            ActivityUtils.addFragmentToActivity(getSupportFragmentManager(), doorfragment, R.id.contentFrame);
+        }
 
-        if (mainfragment == null) {
+        if (mainfragment == null && !Constant.IsDoor) {
             mainfragment = MainFragment.newInstance();
             ActivityUtils.addFragmentToActivity(getSupportFragmentManager(), mainfragment, R.id.contentFrame);
         }

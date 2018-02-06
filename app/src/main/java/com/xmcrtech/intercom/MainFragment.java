@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,6 +33,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     private Button loginout;
     private EditText inputedit;
     private String inputstr;
+    private ImageButton ibclock;
 
     public static MainFragment newInstance() {
         return new MainFragment();
@@ -60,6 +62,14 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         userinfoTv = (TextView) root.findViewById(R.id.userinfo);
         loginout = (Button) root.findViewById(R.id.loginout);
         inputedit = (EditText) root.findViewById(R.id.inputedit);
+        ibclock = (ImageButton) root.findViewById(R.id.ibclock);
+
+        ibclock.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(MainFragment.this.getContext(),"开门成功",Toast.LENGTH_SHORT).show();
+            }
+        });
 
         inputedit.addTextChangedListener(new TextWatcher(){
 
@@ -188,6 +198,6 @@ public class MainFragment extends Fragment implements View.OnClickListener {
      */
     public void outgoing(String number){
         //默认视频通话
-        AVChatActivity.outgoing(MainFragment.this.getContext(),"techxmcr", AVChatType.VIDEO);
+        AVChatActivity.outgoing(MainFragment.this.getContext(),"xmcrtech", AVChatType.VIDEO);
     }
 }

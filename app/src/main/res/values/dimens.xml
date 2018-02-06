@@ -5,4 +5,5 @@
     <dimen name="fab_margin">16dp</dimen>
 
     <dimen name="number_size">60sp</dimen>
+    <dimen name="unlock_marginbottom">60sp</dimen>
 </resources>

@@ -210,12 +210,13 @@ public class AVChatSurface implements View.OnClickListener {
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.large_size_preview:
-                String temp;
-                switchRender(smallAccount, largeAccount);//切换摄像头
-                temp = largeAccount;
-                largeAccount = smallAccount;
-                smallAccount = temp;
-                switchAndSetLayout();
+                //不切换摄像头
+//                String temp;
+//                switchRender(smallAccount, largeAccount);//切换摄像头
+//                temp = largeAccount;
+//                largeAccount = smallAccount;
+//                smallAccount = temp;
+//                switchAndSetLayout();
                 break;
         }
     }

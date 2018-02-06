@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.netease.nimlib.sdk.avchat.constant.AVChatType;
+import com.xmcrtech.intercom.avchat.AVChatSoundPlayer;
 import com.xmcrtech.intercom.avchat.activity.AVChatActivity;
 
 /**
@@ -100,7 +101,7 @@ public class DialerFragment extends Fragment {
      */
     public void outgoing(String number){
         //默认视频通话
-        AVChatActivity.outgoing(DialerFragment.this.getContext(),"techxmcr", AVChatType.VIDEO);
+        AVChatActivity.outgoing(DialerFragment.this.getContext(),number, AVChatType.VIDEO);
     }
 
     @Override
@@ -142,6 +143,7 @@ public class DialerFragment extends Fragment {
         b_1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playDialerSound();
                 number = number + "1";
                 //tv_number.setText(number);
                 inputedit.setText(number);
@@ -150,6 +152,7 @@ public class DialerFragment extends Fragment {
         b_2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playDialerSound();
                 number = number + "2";
                 //tv_number.setText(number);
                 inputedit.setText(number);
@@ -158,6 +161,7 @@ public class DialerFragment extends Fragment {
         b_3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playDialerSound();
                 number = number + "3";
                 //tv_number.setText(number);
                 inputedit.setText(number);
@@ -166,6 +170,7 @@ public class DialerFragment extends Fragment {
         b_4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playDialerSound();
                 number = number + "4";
                 //tv_number.setText(number);
                 inputedit.setText(number);
@@ -174,6 +179,7 @@ public class DialerFragment extends Fragment {
         b_5.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playDialerSound();
                 number = number + "5";
                 //tv_number.setText(number);
                 inputedit.setText(number);
@@ -182,6 +188,7 @@ public class DialerFragment extends Fragment {
         b_6.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playDialerSound();
                 number = number + "6";
                 //tv_number.setText(number);
                 inputedit.setText(number);
@@ -190,6 +197,7 @@ public class DialerFragment extends Fragment {
         b_7.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playDialerSound();
                 number = number + "7";
                 //tv_number.setText(number);
                 inputedit.setText(number);
@@ -198,6 +206,7 @@ public class DialerFragment extends Fragment {
         b_8.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playDialerSound();
                 number = number + "8";
                 //tv_number.setText(number);
                 inputedit.setText(number);
@@ -206,6 +215,7 @@ public class DialerFragment extends Fragment {
         b_9.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playDialerSound();
                 number = number + "9";
                 //tv_number.setText(number);
                 inputedit.setText(number);
@@ -214,6 +224,7 @@ public class DialerFragment extends Fragment {
         b_0.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playDialerSound();
                 number = number + "0";
                 //tv_number.setText(number);
                 inputedit.setText(number);
@@ -222,6 +233,7 @@ public class DialerFragment extends Fragment {
         b_clear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playDialerSound();
                 number = "";
                 //tv_number.setText(number);
                 inputedit.setText(number);
@@ -230,6 +242,7 @@ public class DialerFragment extends Fragment {
         b_call.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playDialerSound();
                 String tNumber = number;
                 number = "";
                 //tv_number.setText(number);
@@ -278,6 +291,10 @@ public class DialerFragment extends Fragment {
             }
         });
         return view;
+    }
+
+    private void playDialerSound(){
+        //AVChatSoundPlayer.instance(this.getContext()).play(AVChatSoundPlayer.RingerTypeEnum.DIALER);
     }
 
     // TODO: Rename method, update argument and hook method into UI event

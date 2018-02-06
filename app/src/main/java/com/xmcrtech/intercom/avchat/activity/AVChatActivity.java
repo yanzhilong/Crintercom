@@ -2,6 +2,7 @@ package com.xmcrtech.intercom.avchat.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -26,6 +27,7 @@ import com.netease.nimlib.sdk.avchat.model.AVChatControlEvent;
 import com.netease.nimlib.sdk.avchat.model.AVChatData;
 import com.netease.nimlib.sdk.avchat.model.AVChatOnlineAckEvent;
 import com.netease.nimlib.sdk.avchat.model.AVChatVideoFrame;
+import com.xmcrtech.intercom.Constant;
 import com.xmcrtech.intercom.R;
 import com.xmcrtech.intercom.avchat.AVChatListener;
 import com.xmcrtech.intercom.avchat.AVChatSoundPlayer;
@@ -54,6 +56,7 @@ public class AVChatActivity extends AppCompatActivity{
     private IncomingFragment incomingFragment = IncomingFragment.newInstance();
     private IncallAudioFragment incallAudioFragment = IncallAudioFragment.newInstance();
     private IncallVideoFragment incallVideoFragment = IncallVideoFragment.newInstance();
+    private DoorIncallVideoFragment doorincallVideoFragment = DoorIncallVideoFragment.newInstance();
     private OutGoingFragment outGoingFragment = OutGoingFragment.newInstance();
     private Fragment currentFragment;
 
@@ -80,17 +83,28 @@ public class AVChatActivity extends AppCompatActivity{
         void onCallStateChange(CallStateEnum callStateEnum);
     }
 
+    /**
+     * 通话状态改变，不处理
+     * @param callStateEnum
+     */
     public void changeCallStateEnum(CallStateEnum callStateEnum){
 
         this.callStateEnum = callStateEnum;
-        for(CallStateChangeListener callStateChangeListener : callStateChangeListeners){
-            callStateChangeListener.onCallStateChange(callStateEnum);
-        }
+//        for(CallStateChangeListener callStateChangeListener : callStateChangeListeners){
+//            callStateChangeListener.onCallStateChange(callStateEnum);
+//        }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //门口机强制使用横屏，手机强制使用竖屏
+        if(Constant.IsDoor){
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }else{
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
+
 
         View root = LayoutInflater.from(this).inflate(R.layout.avchat_act, null);
         setContentView(root);
@@ -726,8 +740,20 @@ public class AVChatActivity extends AppCompatActivity{
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.framelayout, incallAudioFragment).commit();
                 currentFragment = incallAudioFragment;
-            } else {
 
+                //呼叫视频通话
+            } else if(callStateEnum == CallStateEnum.VIDEOOUTGOING){
+                changeCallStateEnum(CallStateEnum.VIDEO);
+                Bundle bundle１ = new Bundle();
+                bundle１.putString(IncallAudioFragment.ACCOUNT, requestaccount);
+                //bundle１.putSerializable(IncallVideoFragment.AVCHATLISTENER,avChatListener);
+                doorincallVideoFragment.setArguments(bundle１);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.framelayout, doorincallVideoFragment).commit();
+                currentFragment = doorincallVideoFragment;
+            }else{
+                //呼入视频通话
+                //callStateEnum == CallStateEnum.VIDEOOUTGOING
                 changeCallStateEnum(CallStateEnum.VIDEO);
                 Bundle bundle１ = new Bundle();
                 bundle１.putString(IncallAudioFragment.ACCOUNT, requestaccount);

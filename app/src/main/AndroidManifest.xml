@@ -115,7 +115,28 @@
             android:value="com.netease.nimlib.service.NimReceiver" />
         //**************************************************************************************
         <activity android:name=".MainActivity"
-            android:windowSoftInputMode="stateHidden|stateAlwaysHidden" />
+            android:hardwareAccelerated="true"
+            android:screenOrientation="portrait"
+            android:label="超超DemoMain" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".DoorActivity"
+            android:windowSoftInputMode="stateHidden|stateAlwaysHidden"
+            android:hardwareAccelerated="true"
+            android:screenOrientation="landscape"
+            android:theme="@style/CrFullscreen">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".TestMainActivity"
             android:label="超超测试">
@@ -139,7 +160,9 @@
         <activity android:name=".login.LoginActivity" />
         <activity
             android:name=".avchat.activity.AVChatActivity"
-            android:screenOrientation="portrait"></activity>
+            android:theme="@style/CrCallingFullscreen">
+
+        </activity>
         <activity
             android:name=".dial.DialActivity"
             android:screenOrientation="portrait"></activity>

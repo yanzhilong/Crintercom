@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.netease.nimlib.sdk.ResponseCode;
@@ -41,7 +42,8 @@ public class OutGoingFragment extends Fragment implements View.OnClickListener {
 
     private AVChatActivity avchatActivity;
 
-    private String account = "";
+    private String account = "";//房号
+    private String callaccount = "";//  呼叫账号
     private AVChatListener avChatUIListener;
     private AVChatType avChatType;
     private WaitDialog waitDialog;
@@ -68,6 +70,8 @@ public class OutGoingFragment extends Fragment implements View.OnClickListener {
         Bundle bundle = getArguments();
         if (bundle != null) {
             account = bundle.getString(ACCOUNT);
+            //得到账号，通过服务器将房号转换成网易云的账号
+            callaccount = "xmcrtech";//先固定这个账号
             //avChatUIListener = (AVChatListener) bundle.getSerializable(AVCHATLISTENER);
             avChatType = (AVChatType) bundle.getSerializable(AVCHATTYPE);
         }
@@ -81,10 +85,14 @@ public class OutGoingFragment extends Fragment implements View.OnClickListener {
         View root = inflater.inflate(R.layout.outgoing_frag, container, false);
 
         root.findViewById(R.id.cancel).setOnClickListener(this);
+
+        TextView tvaccount = (TextView) root.findViewById(R.id.tv_accountnumber) ;
+        tvaccount.setText(account);
+
         //如果有设置菜单，需要加这个
         setHasOptionsMenu(true);
 
-        outGoingCalling(account,avChatType);
+        outGoingCalling(callaccount,avChatType);
         return root;
     }
 
@@ -116,9 +124,12 @@ public class OutGoingFragment extends Fragment implements View.OnClickListener {
 
                         if (code == ResponseCode.RES_FORBIDDEN) {
                             Toast.makeText(getContext(), R.string.avchat_no_permission, Toast.LENGTH_SHORT).show();
-                        } else {
+                        }else if(code == 11001){
+                            //对方不在线
+                            Toast.makeText(getContext(), "对方不在线", Toast.LENGTH_SHORT).show();
+                        }else {
                             Toast.makeText(getContext(), R.string.avchat_call_failed, Toast.LENGTH_SHORT).show();
-                        }
+                        } 
                         avChatUIListener.onHangUp();
                     }
 

@@ -26,18 +26,18 @@ import com.xmcrtech.intercom.avchat.AVChatListener;
 import com.xmcrtech.intercom.avchat.constant.CallStateEnum;
 
 
-public class IncallVideoFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
+public class DoorIncallVideoFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
     public static final String ACCOUNT = "account";
     public static final String AVCHATLISTENER = "avchatlistener";
-    private static final String TAG = IncallVideoFragment.class.getSimpleName();
+    private static final String TAG = DoorIncallVideoFragment.class.getSimpleName();
     private Object object;
 
     private boolean isClosedCamera = false;//标记当前摄像头的开关
     private View root;
 
-    public static IncallVideoFragment newInstance() {
-        return new IncallVideoFragment();
+    public static DoorIncallVideoFragment newInstance() {
+        return new DoorIncallVideoFragment();
     }
 
     private String account = "";
@@ -75,7 +75,7 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
 
                             break;
                         case OUTGOING_VIDEO_TO_AUDIO_FAIL://请求切换为音频
-                            Toast.makeText(IncallVideoFragment.this.getContext(), "连接服务器失败", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(DoorIncallVideoFragment.this.getContext(), "连接服务器失败", Toast.LENGTH_SHORT).show();
                             break;
                     }
                 }
@@ -101,13 +101,15 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        root = inflater.inflate(R.layout.incallvideo_frag, container, false);
+        root = inflater.inflate(R.layout.doorincallvideo_frag, container, false);
 
         avChatSurface = new AVChatSurface(this.getContext(), root);
 
         isInit = true;
         Log.d(TAG, "onCreateView" + account);
-
+//        if (account != null) {
+//            avChatSurface.initLargeSurfaceView(account);
+//        }
 
         recordTb = (ToggleButton)root.findViewById(R.id.recordTb);
         switchAudio = root.findViewById(R.id.switch_audio);
@@ -132,12 +134,8 @@ public class IncallVideoFragment extends Fragment implements View.OnClickListene
         open_door.setOnClickListener(this);
         //初始化本地图像
 
-        if (account != null) {
-            avChatSurface.initLargeSurfaceView(account);
-        }
-
         //avChatSurface.initSmallSurfaceView(Constant.getAccount());
-        //avChatSurface.initLargeSurfaceView(Constant.getAccount());
+        avChatSurface.initLargeSurfaceView(Constant.getAccount());
 
         //如果有设置菜单，需要加这个
         setHasOptionsMenu(true);

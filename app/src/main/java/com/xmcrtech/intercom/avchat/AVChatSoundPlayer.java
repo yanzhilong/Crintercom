@@ -19,6 +19,7 @@ public class AVChatSoundPlayer {
         PEER_BUSY,
         PEER_REJECT,
         RING,
+        DIALER,
         ;
     }
 
@@ -74,6 +75,10 @@ public class AVChatSoundPlayer {
         case RING:
             ringId = R.raw.avchat_ring;
             loop = true;
+            break;
+        case DIALER:
+            ringId = R.raw.dialer;
+            loop = false;
             break;
         }
 

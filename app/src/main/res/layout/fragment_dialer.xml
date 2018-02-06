@@ -18,6 +18,7 @@
         android:cursorVisible="false"
         android:textSize="52dp"
         android:background="@null"
+        android:textColor="@android:color/white"
         android:textCursorDrawable="@null"
         />
 

@@ -1,6 +1,7 @@
 package com.xmcrtech.intercom;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -22,10 +23,14 @@ public class WelcomeActivity extends AppCompatActivity {
                 @Override
                 public void run() {
 
-                    if(canAutoLogin()){
+                    if(canAutoLogin() && !Constant.IsDoor){
                         startActivity(new Intent(WelcomeActivity.this,MainActivity.class));
                         finish();
-                    }else{
+                    }else if(canAutoLogin() && Constant.IsDoor){
+                        startActivity(new Intent(WelcomeActivity.this,DoorActivity.class));
+                        finish();
+                    }
+                    else{
                         startActivity(new Intent(WelcomeActivity.this,LoginActivity.class));
                         finish();
                     }
@@ -33,6 +38,10 @@ public class WelcomeActivity extends AppCompatActivity {
             },1000);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
 
     /**
      * 已经登陆过，自动登陆

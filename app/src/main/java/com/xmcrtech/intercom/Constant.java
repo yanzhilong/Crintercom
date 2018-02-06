@@ -10,6 +10,7 @@ public class Constant {
     public static final String SPNAME = "intercom";//SharedPreferences名字
     private static Context context;
     private static String account;//账号
+    public static boolean IsDoor = true;
 
 
 
